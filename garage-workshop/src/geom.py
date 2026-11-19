@@ -20,6 +20,7 @@ N_MOD = 2                # модуль А (слив) + модуль Б (раб�
 BENCH_X0 = (GARAGE_W - N_MOD * MOD_W) / 2   # зазор до боковой стены = 100
 
 FOOT_H = 25              # регулируемая опора М12 (номинал, ±10)
+FOOT_BASE_D = 32         # пята опоры (на стыке модулей оси ног через 40 мм!)
 PLATE_T = 4              # пластина-подпятник
 LEG_L = 902              # длина ноги (рост 187 → столешница 950)
 FRAME_TOP = FOOT_H + PLATE_T + LEG_L        # верх каркаса = 931
@@ -28,8 +29,8 @@ TUBE_T = 2
 LOW_H, LOW_W = 40, 20    # нижние перемычки 40х20х2 (40 — вертикально)
 LOW_Z0 = 80              # низ нижних перемычек от пола
 LOW_Z1 = LOW_Z0 + LOW_H  # верх = 120
-LEG_HOLES = (250, 650)   # отв. ø9 под стяжку модулей, от низа ноги
-CROSS_XC = (345, 650, 950)   # оси 3 поперечин модуля Б (950 — край плиты Л7)
+LEG_HOLES = (250, 650)   # отв. ø9 под стяжку модулей, от низа ноги (сверлить в сборе)
+CROSS_XC = (450, 750, 1055)  # оси 3 поперечин модуля Б (450 — край плиты Л7)
 
 PLY_T = 18               # фанера берёзовая 18 мм
 TOP_PLY = PLY_T          # основа столешницы — 1 слой 18
@@ -37,15 +38,21 @@ CAP_T = 1.5
 TOP_Z = FRAME_TOP + TOP_PLY + CAP_T         # 950.5 — рабочая высота
 
 # Плита Л7 (20 мм) — под тиски + площадка для правки. Утоплена вровень со столешницей,
-# лежит прямо на каркасе в правом переднем углу модуля Б (над ногой).
+# лежит прямо на каркасе в ЛЕВОМ переднем углу модуля Б — над стянутыми ногами
+# стыка модулей (самое жёсткое место, далеко от боковой стены).
 PL_T = 20
-PL_X0, PL_W, PL_D = 950, 450, 300          # x от левого края модуля Б
-PL_GAP = 1                                  # зазор до фанеры и крышки
-PL_BOLTS = ((25, 20), (380, 20), (430, 120), (430, 240))   # потай М10 (коорд. плиты)
+PL_X0, PL_W, PL_D = 0, 450, 300            # x от левого края модуля Б
+PL_GAP = 2                                  # зазор до фанеры и крышки (конусность реза 20 мм)
+# потай М10 сквозь трубы с распорными втулками; не ближе 30 мм к косынке Л6 (x 40..140)
+PL_BOLTS = ((170, 20), (430, 20), (20, 130), (20, 250))   # коорд. плиты (= модуля Б)
+VISE_XC = 310                               # ось тисков на плите (зона правки — слева, над ногами)
+ANVIL_X = (0, 190)                          # зона правки по X
+CORNER_GAP = 0.3                            # зазор в закрытых углах коробов под TIG
 T7_YC = PL_D                               # ось перемычки Т7 под задним краем плиты
-T7_X0 = CROSS_XC[2] + 20                    # от поперечины до правой боковой
-T7_L = MOD_W - TUBE - T7_X0                 # 390
+T7_X0 = TUBE                                # от левой боковой Т3 до поперечины Т4-1
+T7_L = CROSS_XC[0] - TUBE / 2 - T7_X0       # 390
 SEAM_X = CROSS_XC[1]                        # стык двух кусков фанеры — на средней поперечине
+GUSSET = 100                                # косынка Л6 (катет)
 
 KF = 0.42                # K-фактор для гибки нержавейки/стали
 
@@ -53,24 +60,50 @@ def bend_allow(ri, t, k=KF):
     return math.pi / 2 * (ri + k * t)
 
 # ----------------------------------------------------------------------------
-# ПОДДОН (Л2) — AISI 304, 1.5 мм, дно с уклоном к сливу (зад-лево)
+# ПОДДОН (Л2) — AISI 304, 1.5 мм, дно с уклоном ~2 % к сливу (перёд-лево)
 # ----------------------------------------------------------------------------
 TR_T, TR_RI = 1.5, 1.5
-TR_GAP = 3                                    # зазор стенка-перемычка
+TR_GAP = 4                                    # зазор стенка-перемычка (место под швы рамы)
 TR_LX = MOD_W - 2 * TUBE - 2 * TR_GAP         # 1314 — наружн. размер по стенкам
 TR_LY = MOD_D - 2 * TUBE - 2 * TR_GAP         # 614
 TR_X0 = TUBE + TR_GAP                         # 43 — положение стенки в каркасе
-TR_H0, TR_A, TR_B = 80, 12, 8                 # мин. глубина, перепад по X и по Y
-TR_F = 42                                     # отбортовка (полка) наружу
+TR_H0, TR_A, TR_B = 80, 25, 16                # мин. глубина, перепад по X (1,9 %) и по Y (2,6 %)
+TR_F = TR_X0 - 1                              # 43 — отбортовка (полка) наружу, кромка в 1 мм от края
 TR_TAB_H, TR_TAB_L = 10, 120                  # упоры решётки
 TR_TABS_X = (350 - TR_X0, 1050 - TR_X0)       # центры упоров на перед./задн. полке
 TR_TABS_Y = (350 - TR_X0,)                    # центры упоров на боковых полках
-DR_OFF, DR_D = 45, 18                         # слив: от внутр. стенок, ø отв.
+DR_OFF, DR_D = 40, 28                         # слив: ось от внутр. стенок; ø отв. = наружн. ø полумуфты
+DR_MAX_LEVEL = 40                             # макс. уровень жидкости у слива (риска), мм
 
 def tray_h(x, y):
     """Наружная высота поддона (от низа дна до верха полки) в точке x,y
-    (координаты от наружных граней стенок, x — вправо, y — от фронта к стене)."""
-    return TR_H0 + TR_A * (TR_LX - x) / TR_LX + TR_B * y / TR_LY
+    (координаты от наружных граней стенок, x — вправо, y — от фронта к стене).
+    Самая глубокая точка — перёд-лево (слив)."""
+    return TR_H0 + TR_A * (TR_LX - x) / TR_LX + TR_B * (TR_LY - y) / TR_LY
+
+
+def drain_xy():
+    """Центр слива в координатах поддона (от наружных граней стенок)."""
+    return TR_T + DR_OFF, TR_T + DR_OFF
+
+
+def drain_frame_xy():
+    x, y = drain_xy()
+    return TR_X0 + x, TR_X0 + y
+
+
+def tray_volume(level):
+    """Объём жидкости (л) при уровне level мм над самой низкой точкой дна."""
+    n = 120
+    hmax = max(tray_h(0, 0), tray_h(0, TR_LY), tray_h(TR_LX, 0), tray_h(TR_LX, TR_LY))
+    ix, iy = TR_LX - 2 * TR_T, TR_LY - 2 * TR_T
+    V = 0.0
+    for i in range(n):
+        for j in range(n):
+            x = TR_T + (i + .5) * ix / n
+            y = TR_T + (j + .5) * iy / n
+            V += max(0.0, level - (hmax - tray_h(x, y))) * (ix / n) * (iy / n)
+    return V / 1e6
 
 # ----------------------------------------------------------------------------
 # РЕШЁТКА (Л3) — AISI 304, 3 мм, 4 шт.
@@ -82,7 +115,9 @@ GR_X0 = 1 + TR_T + 1                           # 3.5: упор (1..2.5) + заз
 GR_W = (MOD_W - 2 * GR_X0 - (GR_N - 1) * GR_GAP) / GR_N   # 347.5
 GR_D = MOD_D - 2 * GR_X0                       # 693
 GR_H = TOP_Z - (FRAME_TOP + TR_T)              # 18 — высота борта решётки
-GR_MARGIN = 55                                  # поле без перфорации
+GR_MARGIN = 50                                  # поле без перфорации у наружного борта
+GR_MARGIN_IN = 20                               # ... у внутреннего (глубокого) борта
+GR_HANDLE = (100, 30)                           # ручки-прорези
 GR_DEEP = 30                                    # внутренние борта глубже на 30 (жёсткость)
 GR_DEEP_Y = (TR_X0 + TR_T + 2.5, MOD_D - TR_X0 - TR_T - 2.5)   # 47..653 — внутри стенок поддона
 
@@ -96,8 +131,8 @@ TOPBOARD_W, TOPBOARD_D = MOD_W - 2 * CAP_T - 1, MOD_D - 2 * CAP_T - 1  # 1396 x 
 
 SH_T, SH_RI = 1.5, 1.5
 SH_W, SH_D = MOD_W - 4, MOD_D - 4               # 1396 x 696
-SH_LIP = 20
-SH_NOTCH = 40
+SH_LIP = 40                                     # борт 40 — вторичный поддон (~38 л)
+SH_NOTCH = 45                                   # вырез под ногу (с запасом на швы)
 
 # ----------------------------------------------------------------------------
 # СТЕНОВЫЕ ПАНЕЛИ (фанера 18)
@@ -107,14 +142,14 @@ PN_W, PN_H = 1400, 1200
 PN_N = 2
 PN_Z0 = 1010                                    # низ панели от пола
 PN_PITCH, PN_HOLE, PN_MARGIN = 50, 8, 50
-PN_MOUNT_X = (75, 675, 1325)                    # = оси вертикальных реек
+PN_MOUNT_X = (75, 700, 1325)                    # = оси вертикальных реек (симметрично)
 PN_MOUNT_Y = (75, 425, 775, 1125)
 PN_MOUNT_D = 5
 BT_L, BT_W = 1180, 70                           # рейка-отступ (вертикальная)
 BT_XC = PN_MOUNT_X
 BT_Y0 = 10                                      # низ рейки от низа панели
 BT_ANCHOR = (150, 590, 1030)                    # дюбели вдоль рейки
-BT_ANCHOR_D = 6
+BT_ANCHOR_D = 8                                 # рамный дюбель 8×80 / анкер по материалу стены
 
 # ----------------------------------------------------------------------------
 # СТРУКТУРЫ ДАННЫХ
@@ -246,9 +281,11 @@ def tray_flat():
 
     walls = {
         'front': dict(Lw=Lx, h0=tray_h(0, 0), h1=tray_h(Lx, 0), e0=0.0, e1=Lx, tabs=TR_TABS_X),
-        'right': dict(Lw=Ly, h0=tray_h(Lx, 0), h1=tray_h(Lx, Ly), e0=t, e1=Ly - t, tabs=TR_TABS_Y),
+        'right': dict(Lw=Ly, h0=tray_h(Lx, 0), h1=tray_h(Lx, Ly), e0=t + CORNER_GAP,
+                      e1=Ly - t - CORNER_GAP, tabs=TR_TABS_Y),
         'rear':  dict(Lw=Lx, h0=tray_h(0, Ly), h1=tray_h(Lx, Ly), e0=0.0, e1=Lx, tabs=TR_TABS_X),
-        'left':  dict(Lw=Ly, h0=tray_h(0, 0), h1=tray_h(0, Ly), e0=t, e1=Ly - t, tabs=TR_TABS_Y),
+        'left':  dict(Lw=Ly, h0=tray_h(0, 0), h1=tray_h(0, Ly), e0=t + CORNER_GAP,
+                      e1=Ly - t - CORNER_GAP, tabs=TR_TABS_Y),
     }
 
     def arm(w):
@@ -308,10 +345,12 @@ def tray_flat():
             a, b = maps[name](p1), maps[name](p2)
             bends.append((a[0], a[1], b[0], b[1], lab))
     outline = dedupe(outline)
-    drain = (DR_OFF + t - SB, (Ly - t - DR_OFF) - SB, DR_D / 2)
+    dx_, dy_ = drain_xy()
+    drain = (dx_ - SB, dy_ - SB, DR_D / 2)
     part = FlatPart('Л2', 'Поддон сливной', 'AISI 304 (08Х18Н10)', t, 1,
                     poly(outline), circles=[drain], bends=bends,
                     note='Б1 — на себя 90°, Б2 — от себя 90°, Б3 — на себя 90°; Rвн=1.5')
+    part.bend_dir = {'Б1': 'UP', 'Б2': 'DOWN', 'Б3': 'UP'}
     part.walls = walls
     part.BA = BA
     return part
@@ -342,7 +381,7 @@ def box_flat(code, name, mat, t, qty, W, D, H, Ri, closed=True, notch=None,
                  (n, By + BA / 2, Bx - n, By + BA / 2, 'Б'), (-BA / 2, n, -BA / 2, By - n, 'Б')]
     elif closed:
         e_full = -SB          # перед/зад: от наружной грани
-        e_side = -(SB - t)    # бока: до внутренней грани переднего борта
+        e_side = -(SB - t - CORNER_GAP)   # бока: до внутр. грани переднего борта, зазор 0,3
         pts = []
         # перед (y<0), слева направо
         pts += [(0, 0), (0, -BA), (e_full, -BA), (e_full, -E), (Bx - e_full, -E),
@@ -391,7 +430,8 @@ def box_flat(code, name, mat, t, qty, W, D, H, Ri, closed=True, notch=None,
 
 def _grate(code, name, qty, deep_left, deep_right):
     """Решётка: верх 3 мм с перфорацией, борта вниз на 4 стороны (открытые углы).
-    Внутренние боковые борта (между решётками) — глубже на GR_DEEP в зоне поддона."""
+    Внутренние боковые борта (между решётками) — глубже на GR_DEEP в зоне поддона.
+    Развёртка — вид сверху (с лица)."""
     t, Ri = GR_T, GR_RI
     BA = bend_allow(Ri, t)
     SB = Ri + t
@@ -401,27 +441,27 @@ def _grate(code, name, qty, deep_left, deep_right):
     v1 = GR_DEEP_Y[0] - GR_X0 - SB          # начало глубокой зоны (коорд. развёртки)
     v2 = GR_DEEP_Y[1] - GR_X0 - SB
     ch = GR_DEEP                            # фаска 45° на переходе
+    c = 3.0                                 # фаски 3×45° на концах бортов (открытые углы)
     r = 2.0
     bb = -math.tan(math.radians(270) / 4)
-    pts = [(0, -E, 0), (Bx, -E, 0), (Bx, -r, bb), (Bx + r, 0, 0)]
+    pts = [(c, -E, 0), (Bx - c, -E, 0), (Bx, -E + c, 0), (Bx, -r, bb), (Bx + r, 0, 0),
+           (Bx + E - c, 0, 0), (Bx + E, c, 0)]
     if deep_right:
-        pts += [(Bx + E, 0, 0), (Bx + E, v1, 0), (Bx + Ed, v1 + ch, 0), (Bx + Ed, v2 - ch, 0),
-                (Bx + E, v2, 0)]
-    else:
-        pts += [(Bx + E, 0, 0)]
-    pts += [(Bx + E, By, 0), (Bx + r, By, bb), (Bx, By + r, 0), (Bx, By + E, 0),
-            (0, By + E, 0), (0, By + r, bb), (-r, By, 0)]
+        pts += [(Bx + E, v1, 0), (Bx + Ed, v1 + ch, 0), (Bx + Ed, v2 - ch, 0), (Bx + E, v2, 0)]
+    pts += [(Bx + E, By - c, 0), (Bx + E - c, By, 0), (Bx + r, By, bb), (Bx, By + r, 0),
+            (Bx, By + E - c, 0), (Bx - c, By + E, 0), (c, By + E, 0), (0, By + E - c, 0),
+            (0, By + r, bb), (-r, By, 0), (-E + c, By, 0), (-E, By - c, 0)]
     if deep_left:
-        pts += [(-E, By, 0), (-E, v2, 0), (-Ed, v2 - ch, 0), (-Ed, v1 + ch, 0), (-E, v1, 0)]
-    else:
-        pts += [(-E, By, 0)]
-    pts += [(-E, 0, 0), (-r, 0, bb), (0, -r, 0)]
+        pts += [(-E, v2, 0), (-Ed, v2 - ch, 0), (-Ed, v1 + ch, 0), (-E, v1, 0)]
+    pts += [(-E, c, 0), (-E + c, 0, 0), (-r, 0, bb), (0, -r, 0), (0, -E + c, 0)]
     bends = [(0, -BA / 2, Bx, -BA / 2, 'Б'), (Bx + BA / 2, 0, Bx + BA / 2, By, 'Б'),
              (0, By + BA / 2, Bx, By + BA / 2, 'Б'), (-BA / 2, 0, -BA / 2, By, 'Б')]
     p = FlatPart(code, name, 'AISI 304 (08Х18Н10)', t, qty, pts, bends=bends)
     p.BA, p.SB, p.Bx, p.By, p.E, p.Ed = BA, SB, Bx, By, E, Ed
-    # перфорация: пазы 6х40 вдоль Y, шахматный порядок
-    x0, x1 = GR_MARGIN, GR_W - GR_MARGIN
+    p.bend_dir = {'Б': 'DOWN'}
+    # перфорация: пазы 6х40 вдоль Y, шахматный порядок; у глубокого борта поле уже
+    x0 = GR_MARGIN_IN if deep_left else GR_MARGIN
+    x1 = GR_W - (GR_MARGIN_IN if deep_right else GR_MARGIN)
     hy = 72
     y0, y1 = 100, GR_D - 100
     w, L, px, py = 6.0, 40.0, 18.0, 55.0
@@ -436,10 +476,12 @@ def _grate(code, name, qty, deep_left, deep_right):
              [cy0 + py / 2 + j * py for j in range(nr - 1)]
         for cy in ys:
             holes.append(slot(cx - SB, cy - SB, w, L, 'y'))
+    hl, hw = GR_HANDLE
     for cy in (hy, GR_D - hy):
-        holes.append(slot(GR_W / 2 - SB, cy - SB, 22, 70, 'x'))
+        holes.append(slot(GR_W / 2 - SB, cy - SB, hw, hl, 'x'))
     p.holes = holes
-    p.perf = dict(n=len(holes) - 2, w=w, L=L, px=px, py=py, nc=nc, nr=nr, cx0=cx0, cy0=cy0, hy=hy)
+    p.perf = dict(n=len(holes) - 2, w=w, L=L, px=px, py=py, nc=nc, nr=nr, cx0=cx0, cy0=cy0, hy=hy,
+                  x0=x0, x1=x1)
     p.deep = (deep_left, deep_right)
     p.note = 'Все гибы — от себя 90° (борта вниз), Rвн=3'
     return p
@@ -457,59 +499,129 @@ def grate_mid_flat():
 
 
 def cap_flat():
-    """Крышка 1,5 мм с юбкой 19,5 и вырезом в правом переднем углу под плиту Л7."""
+    """Крышка 1,5 мм: юбка 19,5 вниз спереди, справа и слева (за вырезом), сзади — бортик
+    19,5 ВВЕРХ (не даёт скатиться за верстак). Вырез в левом переднем углу под плиту Л7.
+    Развёртка — вид с лица."""
     t, Ri = CAP_T, CAP_RI
     BA = bend_allow(Ri, t)
     SB = Ri + t
     Bx, By = CAP_W - 2 * SB, CAP_D - 2 * SB
     E = BA + (CAP_H - SB)
-    uc = PL_X0 - PL_GAP - SB                 # начало выреза по X (коорд. развёртки)
+    uc = PL_X0 + PL_W + PL_GAP - SB          # конец выреза по X (коорд. развёртки)
     vc = PL_D + PL_GAP - SB                  # конец выреза по Y
-    es = SB - t                              # удлинение боковых юбок до внутр. грани задней
-    pts = [(0, 0), (0, -BA), (-SB, -BA), (-SB, -E), (uc, -E), (uc, vc),
-           (Bx + E, vc), (Bx + E, By + es), (Bx + BA, By + es), (Bx + BA, By), (Bx, By),
+    es = SB - t - CORNER_GAP                 # удлинение боковых юбок (зазор 0,3 в углу)
+    pts = [(uc, vc), (uc, -E), (Bx + SB, -E), (Bx + SB, -BA), (Bx, -BA), (Bx, 0),
+           (Bx + BA, 0), (Bx + BA, -es), (Bx + E, -es), (Bx + E, By + es), (Bx + BA, By + es),
+           (Bx + BA, By), (Bx, By),
            (Bx, By + BA), (Bx + SB, By + BA), (Bx + SB, By + E), (-SB, By + E), (-SB, By + BA),
            (0, By + BA), (0, By),
-           (-BA, By), (-BA, By + es), (-E, By + es), (-E, -es), (-BA, -es), (-BA, 0)]
-    bends = [(0, -BA / 2, uc, -BA / 2, 'Б'), (Bx + BA / 2, vc, Bx + BA / 2, By, 'Б'),
-             (0, By + BA / 2, Bx, By + BA / 2, 'Б'), (-BA / 2, 0, -BA / 2, By, 'Б')]
+           (-BA, By), (-BA, By + es), (-E, By + es), (-E, vc)]
+    bends = [(uc, -BA / 2, Bx, -BA / 2, 'Б'), (Bx + BA / 2, 0, Bx + BA / 2, By, 'Б'),
+             (0, By + BA / 2, Bx, By + BA / 2, 'Бз'), (-BA / 2, vc, -BA / 2, By, 'Б')]
     dtop = CAP_T + PLY_T / 2                 # отв. по середине толщины фанеры
     off = BA + (dtop - SB)
-    circles = [(x - SB, -off, 2.25) for x in (200, 550, 880)]
-    circles += [(x - SB, By + off, 2.25) for x in (200, 700, 1200)]
-    circles += [(-off, y - SB, 2.25) for y in (200, 500)]
-    circles += [(Bx + off, y - SB, 2.25) for y in (500,)]
-    p = FlatPart('Л1', 'Крышка столешницы', 'AISI 430 шлиф.', t, 1, poly(pts),
+    CAP_SCREWS_FRONT = (650, 950, 1250)
+    CAP_SCREWS_RIGHT = (200, 500)
+    circles = [(x - SB, -off, 2.25) for x in CAP_SCREWS_FRONT]
+    circles += [(Bx + off, y - SB, 2.25) for y in CAP_SCREWS_RIGHT]
+    p = FlatPart('Л1', 'Крышка столешницы', 'AISI 430 шлиф.', t, 1, poly(dedupe(pts)),
                  circles=circles, bends=bends,
-                 note='Все гибы — от себя 90° (юбка вниз), Rвн=1.5')
+                 note='Юбки перед/право/лево — от себя 90°, задний бортик — на себя 90°; Rвн=1.5')
+    p.bend_dir = {'Б': 'DOWN', 'Бз': 'UP'}
     p.BA, p.SB, p.Bx, p.By, p.E, p.uc, p.vc = BA, SB, Bx, By, E, uc, vc
+    p.screws = (CAP_SCREWS_FRONT, CAP_SCREWS_RIGHT, dtop)
     return p
 
 
 def shelf_flat():
-    p = box_flat('Л4', 'Полка нижняя (модуль А)', 'Ст 08пс/Ст3', SH_T, 1,
+    p = box_flat('Л4', 'Полка-поддон нижняя (модуль А)', 'AISI 430', SH_T, 1,
                  SH_W, SH_D, SH_LIP, SH_RI, notch=SH_NOTCH)
-    p.note = 'Все гибы — на себя 90° (борт вверх), Rвн=1.5'
+    p.note = 'Все гибы — на себя 90° (борт вверх), Rвн=1.5; углы у ног закрыть вставками Л10'
+    p.bend_dir = {'Б': 'UP'}
+    return p
+
+
+def shelf_insert():
+    """Л10 — угловая вставка полки: закрывает борт вокруг выреза под ногу (сварка TIG)."""
+    t, Ri = SH_T, SH_RI
+    BA = bend_allow(Ri, t)
+    SB = Ri + t
+    a = SH_NOTCH - SB            # прямые участки (наружный размер стенки = SH_NOTCH)
+    L = a + BA + a
+    o = poly([(0, 0), (L, 0), (L, SH_LIP), (0, SH_LIP)])
+    p = FlatPart('Л10', 'Вставка угловая полки', 'AISI 430', t, 4, o,
+                 bends=[(a + BA / 2, 0, a + BA / 2, SH_LIP, 'Б')],
+                 note='Гиб 90°, вварить в угол выреза полки Л4 вокруг ноги')
+    p.bend_dir = {'Б': 'UP'}
+    return p
+
+
+def drain_strainer():
+    """Л11 — колпак-фильтр над сливом: верх с отв. ø3, борта 12 мм вниз с прорезями 3×3."""
+    t, Ri = 1.5, 1.5
+    BA = bend_allow(Ri, t)
+    SB = Ri + t
+    W, H = 76, 12
+    B = W - 2 * SB
+    E = BA + (H - SB)
+    pts = [(0, -E), (B, -E), (B, 0), (B + E, 0), (B + E, B), (B, B), (B, B + E), (0, B + E),
+           (0, B), (-E, B), (-E, 0), (0, 0)]
+    # прорези-зубцы по нижним кромкам бортов (3 шир × 3 гл, шаг 9)
+    out = []
+    n = len(pts)
+    for i in range(n):
+        x1, y1 = pts[i]; x2, y2 = pts[(i + 1) % n]
+        out.append((x1, y1))
+        free = (abs(y1 - y2) < 1e-6 and abs(abs(y1) - E) < 1e-6 or abs(y1 - (B + E)) < 1e-6 and abs(y1 - y2) < 1e-6) \
+            or (abs(x1 - x2) < 1e-6 and (abs(x1 + E) < 1e-6 or abs(x1 - (B + E)) < 1e-6))
+        if not free:
+            continue
+        Lseg = math.hypot(x2 - x1, y2 - y1)
+        ux, uy = (x2 - x1) / Lseg, (y2 - y1) / Lseg
+        nx, ny = -uy, ux                      # внутрь контура (CCW)
+        k = 1
+        while 9 * k + 1.5 < Lseg - 6:
+            s0 = 9 * k - 1.5
+            s1 = s0 + 3
+            for s_, d_ in ((s0, 0), (s0, 3), (s1, 3), (s1, 0)):
+                out.append((x1 + ux * s_ + nx * d_, y1 + uy * s_ + ny * d_))
+            k += 1
+    drills = []
+    pitch, nh = 7.5, 8
+    m = (B - (nh - 1) * pitch) / 2               # 8,75 от касательной гиба
+    circles = [(m + i * pitch, m + j * pitch, 1.5) for i in range(nh) for j in range(nh)]
+    bends = [(0, -BA / 2, B, -BA / 2, 'Б'), (B + BA / 2, 0, B + BA / 2, B, 'Б'),
+             (0, B + BA / 2, B, B + BA / 2, 'Б'), (-BA / 2, 0, -BA / 2, B, 'Б')]
+    p = FlatPart('Л11', 'Колпак-фильтр слива', 'AISI 304 (08Х18Н10)', t, 1, poly(out),
+                 circles=circles, bends=bends, note='Борта 12 мм от себя 90°; ставится на дно над сливом')
+    p.bend_dir = {'Б': 'DOWN'}
     return p
 
 
 def foot_plate():
     o = rect_r(40, 40, 2)
     return FlatPart('Л5', 'Подпятник ноги', 'Ст3', PLATE_T, 2 * 4, o,
-                    circles=[(20, 20, 6.5)], note='Приварить гайку М12 сверху соосно')
+                    circles=[(20, 20, 6.5)], note='Приварить гайку М12 (без цинка) сверху соосно')
 
 
 def gusset():
-    pts = [(0, 12), (12, 0), (100, 0), (100, 6), (6, 100), (0, 100)]
+    pts = [(0, 12), (12, 0), (GUSSET, 0), (GUSSET, 6), (6, GUSSET), (0, GUSSET)]
     return FlatPart('Л6', 'Косынка', 'Ст3', 4, 2, poly(pts),
                     note='Модуль Б: перед. ноги + верх. перемычка')
 
 
+def square_washer():
+    return FlatPart('Л9', 'Шайба квадратная 36×36', 'Ст3', 4, 8, rect_r(36, 36, 2),
+                    circles=[(18, 18, 4.5)], note='Стяжка модулей М8: по 2 на болт, на внутр. грани ног')
+
+
 def vise_plate():
-    c = [(x, y, 5.5) for x, y in PL_BOLTS]
-    return FlatPart('Л7', 'Плита под тиски / наковальня', 'Ст3 (лучше Ст45)', PL_T, 1,
-                    rect_r(PL_W, PL_D, 3), circles=c,
-                    note='4 отв. ø11 зенковать 90° до ø21 (потай М10). Отв. тисков — по месту, М12')
+    d = [(x, y, 5.5) for x, y in PL_BOLTS]
+    p = FlatPart('Л7', 'Плита под тиски / наковальня', 'Ст45 (или Ст3)', PL_T, 1,
+                 rect_r(PL_W, PL_D, 3), drills=d,
+                 note='Контур — лазер (плазма — только с PL_GAP≥2). 4 отв. ø11 СВЕРЛИТЬ, '
+                      'зенковать 90°×ø21 сверху. Отв. тисков М12 — по месту')
+    return p
 
 
 # ----------------------------------------------------------------------------
@@ -539,27 +651,56 @@ def batten():
                     drills=d, kind='ply')
 
 
+TOPBOARD_GAP = 1.5                                   # зазор фанера—юбка крышки (радиус гиба)
+
+
 def topboards():
     """Основа столешницы Б — 1 слой 18 мм, из двух частей со стыком на средней
     поперечине (так вся фанера укладывается в 2 листа 2440×1220).
-    Правая часть — с вырезом под плиту Л7."""
-    x_lo, x_hi = CAP_T + 0.5, MOD_W - CAP_T - 0.5       # 2 .. 1398
-    y_lo, y_hi = CAP_T + 0.5, MOD_D - CAP_T - 0.5       # 2 .. 698
+    Левая часть — с вырезом под плиту Л7."""
+    x_lo, x_hi = CAP_T + TOPBOARD_GAP, MOD_W - CAP_T - TOPBOARD_GAP     # 3 .. 1397
+    y_lo, y_hi = CAP_T + TOPBOARD_GAP, MOD_D - CAP_T - TOPBOARD_GAP     # 3 .. 697
     M = 'Фанера берёзовая ФК 18'
-    L = poly([(0, 0), (SEAM_X - x_lo, 0), (SEAM_X - x_lo, y_hi - y_lo), (0, y_hi - y_lo)])
-    w2 = x_hi - SEAM_X
-    cx = PL_X0 - PL_GAP - SEAM_X
+    w1 = SEAM_X - x_lo
+    cx = PL_X0 + PL_W + PL_GAP - x_lo
     cy = PL_D + PL_GAP - y_lo
-    R = poly([(0, 0), (cx, 0), (cx, cy), (w2, cy), (w2, y_hi - y_lo), (0, y_hi - y_lo)])
-    a = FlatPart('Щ1', 'Столешница, левая часть', M, PLY_T, 1, L, kind='ply')
+    D = y_hi - y_lo
+    L = poly([(cx, 0), (w1, 0), (w1, D), (0, D), (0, cy), (cx, cy)])
+    w2 = x_hi - SEAM_X
+    R = poly([(0, 0), (w2, 0), (w2, D), (0, D)])
+    a = FlatPart('Щ1', 'Столешница, левая часть (вырез под Л7)', M, PLY_T, 1, L, kind='ply')
     b = FlatPart('Щ2', 'Столешница, правая часть', M, PLY_T, 1, R, kind='ply')
     a.pos = (x_lo, y_lo); b.pos = (SEAM_X, y_lo)
+    a.cut = (cx, cy)
     return [a, b]
+
+
+def ply_screws():
+    """Саморезы с крылышками: фанера → трубы. Точки в координатах модуля Б."""
+    pts = []
+    T = TUBE
+    e = T / 2
+    # передняя Т2 (справа от плиты), задняя Т2, правая Т3, левая Т3 (за плитой)
+    for x in range(PL_X0 + PL_W + 80, MOD_W - 60, 200):
+        pts.append((x, e))
+    for x in range(120, MOD_W - 60, 200):
+        pts.append((x, MOD_D - e))
+    for y in (200, 450):
+        pts.append((MOD_W - e, y))
+    pts.append((e, 480))
+    # поперечины: Т4-1 — только за плитой; Т4-2 — по обе стороны стыка; Т4-3
+    for y in (420, 580):
+        pts.append((CROSS_XC[0], y))
+    for y in (150, 350, 550):
+        pts.append((CROSS_XC[1] - 11, y)); pts.append((CROSS_XC[1] + 11, y + 100))
+    for y in (200, 450):
+        pts.append((CROSS_XC[2], y))
+    return pts
 
 
 def acc_parts():
     """Навесные держатели из обрезков фанеры. Задняя планка с 4 шкантами ø8
-    (шаг 50 по сетке панели)."""
+    (шаг 50 по сетке панели) + 1 саморез от вырыва."""
     parts = []
     M = 'Фанера берёзовая ФК 18'
 
@@ -567,6 +708,8 @@ def acc_parts():
         o = poly([(0, 0), (L, 0), (L, 90), (0, 90)])
         xs = (75, 225) if L == 300 else (50, 350)
         d = [(x, y, 4) for x in xs for y in (15, 65)]
+        sx = xs[0] + 75 if L == 300 else xs[0] + 175          # смещение 25 от сетки
+        d.append((sx, 40, 2.25))
         return FlatPart(code, 'Задняя планка', M, PLY_T, 1, o, drills=d, kind='ply')
 
     def gus(code, h, w):
@@ -574,13 +717,13 @@ def acc_parts():
     # А1 — отвёрточница
     parts.append(back('А1.1', 300))
     sh = FlatPart('А1.2', 'Полка с отв.', M, PLY_T, 1, poly([(0, 0), (300, 0), (300, 80), (0, 80)]),
-                  drills=[(30 + 30 * i, 30, 6) for i in range(9)], kind='ply')
+                  drills=[(30 + 40 * i, 50, 6) for i in range(7)], kind='ply')
     parts.append(sh)
     parts.append(gus('А1.3', 70, 60))
-    # А2 — ключница (пазы открыты к краю y=70)
+    # А2 — ключница (пазы открыты к переднему краю y=70)
     parts.append(back('А2.1', 400))
     pts = [(0, 0, 0), (400, 0, 0), (400, 70, 0)]
-    pitch, n, sw, sd = 33, 11, 8, 45
+    pitch, n, sw, sd = 45, 8, 8, 45
     xs = [400 / 2 - (n - 1) * pitch / 2 + i * pitch for i in range(n)]
     for x in reversed(xs):
         pts += [(x + sw / 2, 70, 0), (x + sw / 2, 70 - sd + sw / 2, -1.0),
@@ -595,6 +738,9 @@ def acc_parts():
     parts.append(FlatPart('А3.3', 'Бортик', M, PLY_T, 1,
                           poly([(0, 0), (400, 0), (400, 40), (0, 40)]), kind='ply'))
     parts.append(gus('А3.4', 70, 75))
+    # А4 — ложемент под перо вилки (на решётку / на верстак), V 90°
+    v = poly([(0, 0), (120, 0), (120, 80), (95, 80), (60, 45), (25, 80), (0, 80)])
+    parts.append(FlatPart('А4', 'Ложемент под перо вилки', M, PLY_T, 2, v, kind='ply'))
     return parts
 
 
@@ -617,27 +763,37 @@ def tubes():
     D_in = MOD_D - 2 * TUBE
     return [
         Tube('Т1', 'Нога', '40х40х2', LEG_L, 4 * N_MOD,
-             '2 отв. ø9 насквозь (по оси X) на 250 и 650 от низа', 'А, Б'),
-        Tube('Т2', 'Перемычка верхняя продольная', '40х40х2', W_in, 2 * N_MOD, '', 'А, Б'),
-        Tube('Т3', 'Перемычка верхняя боковая', '40х40х2', D_in, 2 * N_MOD, '', 'А, Б'),
+             'Отв. ø9 под стяжку — сверлить в сборе модулей (на 252 и 652 от верха)', 'А, Б'),
+        Tube('Т2', 'Перемычка верхняя продольная', '40х40х2', W_in, 2 * N_MOD,
+             'Мод. Б перед.: 2 втулки под болты плиты (лист 6)', 'А, Б'),
+        Tube('Т3', 'Перемычка верхняя боковая', '40х40х2', D_in, 2 * N_MOD,
+             'Мод. Б лев.: 2 втулки под болты плиты (лист 6)', 'А, Б'),
         Tube('Т4', 'Поперечина столешницы', '40х40х2', D_in, len(CROSS_XC),
-             'Мод. Б, оси на %s от левого края' % ', '.join(str(c) for c in CROSS_XC), 'Б'),
+             'Мод. Б, ОСИ на %s от левого края' % ', '.join(str(c) for c in CROSS_XC), 'Б'),
         Tube('Т5', 'Перемычка нижняя продольная', '40х20х2', W_in, 3,
              'А — перед. и задн., Б — только задн.', 'А, Б'),
         Tube('Т6', 'Перемычка нижняя боковая', '40х20х2', D_in, 2 * N_MOD, '', 'А, Б'),
         Tube('Т7', 'Перемычка под плиту Л7', '40х40х2', T7_L, 1,
-             'Мод. Б, ось на %d от фронта, между Т4 и Т3' % T7_YC, 'Б'),
+             'Мод. Б, ОСЬ на %d от фронта, между Т3 лев. и Т4-1' % T7_YC, 'Б'),
+        Tube('Т8', 'Ухо крепления к стене', 'уголок 40х40х4', 50, N_MOD,
+             'Отв. ø10; к низу задней Т2 посередине, полкой вниз', 'А, Б'),
+        Tube('Т9', 'Втулка распорная', 'труба 16х2,5', 38, 4,
+             'Внутрь Т2/Т3 под болты плиты, обварить снизу заподлицо', 'Б'),
     ]
 
 
-def cut_sticks(pieces, stock=6000, kerf=3):
-    """Раскрой хлыстов: first-fit decreasing. pieces: [(code, L)]."""
+TUBE_STOCK = {'40х40х2': 6000, '40х20х2': 6000}
+
+
+def cut_sticks(pieces, stock=6000, kerf=3, trim=10):
+    """Раскрой хлыстов: first-fit decreasing, с торцовкой концов хлыста (trim с каждой стороны)."""
+    usable = stock - 2 * trim
     items = sorted(pieces, key=lambda p: -p[1])
     sticks = []
     for code, L in items:
         for s in sticks:
             used = sum(l for _, l in s) + kerf * len(s)
-            if used + L + kerf <= stock:
+            if used + L + kerf <= usable:
                 s.append((code, L))
                 break
         else:
@@ -647,8 +803,8 @@ def cut_sticks(pieces, stock=6000, kerf=3):
 
 if __name__ == '__main__':
     from shapely.geometry import Polygon
-    for f in (tray_flat, grate_flat, grate_mid_flat, cap_flat, shelf_flat, foot_plate, gusset,
-              vise_plate, panel, batten):
+    for f in (tray_flat, grate_flat, grate_mid_flat, cap_flat, shelf_flat, shelf_insert,
+              drain_strainer, foot_plate, gusset, square_washer, vise_plate, panel, batten):
         p = f()
         poly_ = Polygon(bulge_points(p.outer))
         print(p.code, p.name, 'size=%.1f x %.1f' % p.size(), 'valid=', poly_.is_valid,

@@ -42,7 +42,8 @@ def new_sheet(title, sheet_no, sheet_total, scale_txt='', material=''):
     ax.text(x0 + 122, y0 + 15, 'Лист', fontsize=6, va='center')
     ax.text(x0 + 135, y0 + 15, '%d' % sheet_no, fontsize=8, va='center', weight='bold')
     ax.text(x0 + 152, y0 + 15, 'Листов  %d' % sheet_total, fontsize=7, va='center')
-    ax.text(x0 + 122, y0 + 5, 'Размеры в мм. Неуказ. допуски ±1', fontsize=5.5, va='center')
+    ax.text(x0 + 122, y0 + 5, 'Размеры в мм', fontsize=5.5, va='center')
+    ax.text(x0 + 152, y0 + 5, 'Неуказ. допуски ±1', fontsize=5.5, va='center')
     fig._title_block = (x0, y0, w, h)
     return fig, ax
 

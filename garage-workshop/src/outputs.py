@@ -21,7 +21,9 @@ def _new_doc():
     doc.header['$MEASUREMENT'] = 1
     L = doc.layers
     L.add('CUT', color=7)                       # контур реза (наружный + внутренние)
-    L.add('BEND', color=1, linetype='DASHED')   # линии гиба — НЕ резать
+    L.add('BEND_UP', color=1, linetype='DASHED')     # гиб «на себя» (к виду DXF) — НЕ резать
+    L.add('BEND_DOWN', color=30, linetype='DASHED')  # гиб «от себя» — НЕ резать
+    L.add('DRILL', color=4)                     # металл: сверлить по месту, НЕ резать
     L.add('CUT_INSIDE', color=5)                # фанера: внутренние контуры фрезой
     L.add('DRILL_D8', color=3)
     L.add('DRILL_D6', color=4)
@@ -42,15 +44,15 @@ def _add_part(msp, p, dx=0.0, dy=0.0, with_text=False):
         msp.add_circle((cx + dx, cy + dy), r, dxfattribs={'layer': 'CUT'})
     for cx, cy, r in p.drills:
         d = round(2 * r)
-        lay = 'DRILL_D%d' % d if d in (5, 6, 8) else 'CUT_INSIDE'
+        if p.kind == 'metal':
+            lay = 'DRILL'
+        else:
+            lay = 'DRILL_D%d' % d if d in (5, 6, 8) else 'CUT_INSIDE'
         msp.add_circle((cx + dx, cy + dy), r, dxfattribs={'layer': lay})
+    bd = getattr(p, 'bend_dir', {})
     for x1, y1, x2, y2, lab in p.bends:
-        msp.add_line((x1 + dx, y1 + dy), (x2 + dx, y2 + dy), dxfattribs={'layer': 'BEND'})
-    if with_text:
-        x0, y0, x1, y1 = p.bbox()
-        msp.add_text(p.code, height=max(8, min(40, (y1 - y0) / 8)),
-                     dxfattribs={'layer': 'TEXT'}).set_placement(
-            ((x0 + x1) / 2 + dx, (y0 + y1) / 2 + dy), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
+        lay = 'BEND_UP' if bd.get(lab, 'DOWN') == 'UP' else 'BEND_DOWN'
+        msp.add_line((x1 + dx, y1 + dy), (x2 + dx, y2 + dy), dxfattribs={'layer': lay})
 
 
 def write_part_dxf(p, folder):
@@ -79,14 +81,19 @@ def _mat_short(m):
 
 
 def write_nest_dxf(sheet_w, sheet_h, placed, path, title=''):
+    """Раскладка: граница листа — слой SHEET (не резать); подписи — только ЗА листом."""
     doc = _new_doc()
     msp = doc.modelspace()
     msp.add_lwpolyline([(0, 0), (sheet_w, 0), (sheet_w, sheet_h), (0, sheet_h)], close=True,
                        dxfattribs={'layer': 'SHEET'})
     for p in placed:
-        _add_part(msp, p, with_text=True)
+        _add_part(msp, p)
     if title:
-        msp.add_text(title, height=15, dxfattribs={'layer': 'TEXT'}).set_placement((0, sheet_h + 20))
+        codes = {}
+        for p in placed:
+            codes[p.code] = codes.get(p.code, 0) + 1
+        legend = title + ':  ' + ', '.join('%s ×%d' % kv for kv in codes.items())
+        msp.add_text(legend, height=15, dxfattribs={'layer': 'TEXT'}).set_placement((0, sheet_h + 30))
     doc.saveas(path)
 
 
@@ -114,14 +121,14 @@ def check_nest(sheet_w, sheet_h, placed, margin=5, gap=5):
 
 
 def ply_nest():
-    """2 листа 2440×1220: панель + половина столешницы + 3 рейки + держатели."""
+    """2 листа 2440×1220: панель + часть столешницы + 3 рейки + держатели."""
     P1, R1 = panel(), batten()
     S1, S2 = topboards()
     acc = {p.code: p for p in acc_parts()}
     m, g = 10, 12
     sx = m + PN_W + g                       # 1422 — правая полоса шириной 1008
 
-    def sheet(top, codes_rows):
+    def sheet(top, codes_rows, extra=()):
         L = [place(P1, m, m), place(top, sx, m)]
         bx = sx + top.size()[0] + g
         for k in range(3):
@@ -136,8 +143,11 @@ def ply_nest():
                 x += q.size()[0] + g
                 hmax = max(hmax, q.size()[1])
             y += hmax + g
+        for code, x, y in extra:
+            L.append(place(acc[code], x, y))
         return L
-    s1 = sheet(S1, [('А1.1', 'А1.2'), ('А2.1', 'А1.3', 'А1.3'), ('А2.2', 'А2.3', 'А2.3')])
+    s1 = sheet(S1, [('А1.1', 'А1.2'), ('А2.1', 'А1.3', 'А1.3'), ('А2.2', 'А2.3', 'А2.3')],
+               extra=(('А4', 1980, m + 696 + g + 102), ('А4', 1980, m + 696 + g + 204)))
     s2 = sheet(S2, [('А3.1', 'А3.4', 'А3.4'), ('А3.2',), ('А3.3',)])
     sheets = [('Лист фанеры №1 (2440×1220)', s1), ('Лист фанеры №2 (2440×1220)', s2)]
     for name, L in sheets:
@@ -149,8 +159,9 @@ def metal_nest():
     out = []
     T = tray_flat(); G = grate_flat(); Gm = grate_mid_flat(); C = cap_flat(); S = shelf_flat()
     m = 10
+    st = drain_strainer()
     out.append(dict(title='AISI 304, 1,5 мм — лист 1000×2000', w=2000, h=1000,
-                    parts=[place(T, m, m)], file='NEST_AISI304_t1,5_1000x2000.dxf'))
+                    parts=[place(T, m, m), place(st, 1650, m)], file='NEST_AISI304_t1,5_1000x2000.dxf'))
     parts, x = [], m
     for p in (G, G, Gm, Gm):
         q = place(p, x, m)
@@ -158,25 +169,28 @@ def metal_nest():
         x += q.size()[0] + 12
     out.append(dict(title='AISI 304, 3 мм — лист 1000×2000', w=2000, h=1000, parts=parts,
                     file='NEST_AISI304_t3_1000x2000.dxf'))
-    out.append(dict(title='AISI 430, 1,5 мм — лист 1000×2000', w=2000, h=1000,
-                    parts=[place(C, m, m)], file='NEST_AISI430_t1,5_1000x2000.dxf'))
-    out.append(dict(title='Ст 08пс, 1,5 мм — лист 1000×2000', w=2000, h=1000,
-                    parts=[place(S, m, m)], file='NEST_St_t1,5_1000x2000.dxf'))
-    fp, gs, vp = foot_plate(), gusset(), vise_plate()
+    out.append(dict(title='AISI 430 шлиф., 1,5 мм — лист 1000×2000 (крышка)', w=2000, h=1000,
+                    parts=[place(C, m, m)], file='NEST_AISI430_t1,5_list1_1000x2000.dxf'))
+    ins = shelf_insert()
+    sp = [place(S, m, m)] + [place(ins, 1500, m + k * 52) for k in range(4)]
+    out.append(dict(title='AISI 430, 1,5 мм — лист 1000×2000 (полка)', w=2000, h=1000,
+                    parts=sp, file='NEST_AISI430_t1,5_list2_1000x2000.dxf'))
+    fp, gs, sw, vp = foot_plate(), gusset(), square_washer(), vise_plate()
     small4 = [place(fp, m + (k % 4) * 50, m + (k // 4) * 50) for k in range(8)]
     small4 += [place(gs, 220, m), place(gs, 330, m)]
-    out.append(dict(title='Ст3, 4 мм — обрезок 450×120', w=450, h=120, parts=small4,
-                    file='NEST_St3_t4_450x120.dxf'))
-    out.append(dict(title='Ст3/Ст45, 20 мм — заготовка 470×320', w=470, h=320,
-                    parts=[place(vp, m, m)], file='NEST_St_t20_470x320.dxf'))
+    small4 += [place(sw, m + (k % 8) * 46, 125 + (k // 8) * 46) for k in range(8)]
+    out.append(dict(title='Ст3, 4 мм — обрезок 450×200', w=450, h=200, parts=small4,
+                    file='NEST_St3_t4_450x200.dxf'))
+    out.append(dict(title='Ст45/Ст3, 20 мм — заготовка 490×340', w=490, h=340,
+                    parts=[place(vp, 20, 20)], file='NEST_St_t20_490x340.dxf'))
     for s_ in out:
         check_nest(s_['w'], s_['h'], s_['parts'], margin=m - 0.01, gap=5)
     return out
 
 
 def metal_parts():
-    return [cap_flat(), tray_flat(), grate_flat(), grate_mid_flat(), shelf_flat(), foot_plate(),
-            gusset(), vise_plate()]
+    return [cap_flat(), tray_flat(), grate_flat(), grate_mid_flat(), shelf_flat(), shelf_insert(),
+            drain_strainer(), foot_plate(), gusset(), square_washer(), vise_plate()]
 
 
 def ply_parts():
