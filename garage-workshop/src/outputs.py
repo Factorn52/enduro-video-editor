@@ -114,52 +114,49 @@ def check_nest(sheet_w, sheet_h, placed, margin=5, gap=5):
 
 
 def ply_nest():
-    P1, R1, S1 = panel(), batten(), topboard()
+    """2 листа 2440×1220: панель + половина столешницы + 3 рейки + держатели."""
+    P1, R1 = panel(), batten()
+    S1, S2 = topboards()
     acc = {p.code: p for p in acc_parts()}
-    sheets = []
     m, g = 10, 12
-    sx = m + PN_W + g                       # 1422 — полоса справа (93 мм)
+    sx = m + PN_W + g                       # 1422 — правая полоса шириной 1008
 
-    def base():
-        L = [place(P1, m, m)]
+    def sheet(top, codes_rows):
+        L = [place(P1, m, m), place(top, sx, m)]
+        bx = sx + top.size()[0] + g
         for k in range(3):
-            L.append(place(R1, m, m + PN_H + g + k * (BT_W + g)))
+            L.append(place(R1, bx + k * (BT_W + g), m, rot=True))
+        y = m + top.size()[1] + g
+        for row in codes_rows:
+            x = sx
+            hmax = 0
+            for code in row:
+                q = place(acc[code], x, y)
+                L.append(q)
+                x += q.size()[0] + g
+                hmax = max(hmax, q.size()[1])
+            y += hmax + g
         return L
-    s1 = base()
-    y = m
-    for code, n in (('А1.1', 1), ('А1.2', 1), ('А1.3', 2), ('А2.1', 1)):
-        for _ in range(n):
-            q = place(acc[code], sx, y, rot=acc[code].size()[0] > 93)
-            s1.append(q); y += q.size()[1] + g
-    sheets.append(('Лист фанеры №1', s1))
-    s2 = base(); y = m
-    for code, n in (('А2.2', 1), ('А2.3', 2), ('А3.1', 1)):
-        for _ in range(n):
-            q = place(acc[code], sx, y, rot=acc[code].size()[0] > 93)
-            s2.append(q); y += q.size()[1] + g
-    sheets.append(('Лист фанеры №2', s2))
-    s3 = base(); y = m
-    for code, n in (('А3.2', 1), ('А3.3', 1), ('А3.4', 2)):
-        for _ in range(n):
-            q = place(acc[code], sx, y, rot=acc[code].size()[0] > 93)
-            s3.append(q); y += q.size()[1] + g
-    sheets.append(('Лист фанеры №3', s3))
-    s4 = [place(S1, m, m), place(S1, m, m + TOPBOARD_D + g)]
-    sheets.append(('Лист фанеры №4 (столешница)', s4))
+    s1 = sheet(S1, [('А1.1', 'А1.2'), ('А2.1', 'А1.3', 'А1.3'), ('А2.2', 'А2.3', 'А2.3')])
+    s2 = sheet(S2, [('А3.1', 'А3.4', 'А3.4'), ('А3.2',), ('А3.3',)])
+    sheets = [('Лист фанеры №1 (2440×1220)', s1), ('Лист фанеры №2 (2440×1220)', s2)]
     for name, L in sheets:
-        check_nest(PLY_SHEET, PLY_SHEET, L, margin=m, gap=g - 0.01)
+        check_nest(PLY_SW, PLY_SH, L, margin=m, gap=g - 0.01)
     return sheets
 
 
 def metal_nest():
     out = []
-    T = tray_flat(); G = grate_flat(); C = cap_flat(); S = shelf_flat()
+    T = tray_flat(); G = grate_flat(); Gm = grate_mid_flat(); C = cap_flat(); S = shelf_flat()
     m = 10
     out.append(dict(title='AISI 304, 1,5 мм — лист 1000×2000', w=2000, h=1000,
                     parts=[place(T, m, m)], file='NEST_AISI304_t1,5_1000x2000.dxf'))
-    gw = G.size()[0]
-    out.append(dict(title='AISI 304, 3 мм — лист 1000×2000', w=2000, h=1000,
-                    parts=[place(G, m + k * (gw + 12), m) for k in range(GR_N)],
+    parts, x = [], m
+    for p in (G, G, Gm, Gm):
+        q = place(p, x, m)
+        parts.append(q)
+        x += q.size()[0] + 12
+    out.append(dict(title='AISI 304, 3 мм — лист 1000×2000', w=2000, h=1000, parts=parts,
                     file='NEST_AISI304_t3_1000x2000.dxf'))
     out.append(dict(title='AISI 430, 1,5 мм — лист 1000×2000', w=2000, h=1000,
                     parts=[place(C, m, m)], file='NEST_AISI430_t1,5_1000x2000.dxf'))
@@ -170,19 +167,20 @@ def metal_nest():
     small4 += [place(gs, 220, m), place(gs, 330, m)]
     out.append(dict(title='Ст3, 4 мм — обрезок 450×120', w=450, h=120, parts=small4,
                     file='NEST_St3_t4_450x120.dxf'))
-    out.append(dict(title='Ст3, 6 мм — обрезок 220×220', w=220, h=220,
-                    parts=[place(vp, m, m)], file='NEST_St3_t6_220x220.dxf'))
-    for s in out:
-        check_nest(s['w'], s['h'], s['parts'], margin=m - 0.01, gap=5)
+    out.append(dict(title='Ст3/Ст45, 20 мм — заготовка 470×320', w=470, h=320,
+                    parts=[place(vp, m, m)], file='NEST_St_t20_470x320.dxf'))
+    for s_ in out:
+        check_nest(s_['w'], s_['h'], s_['parts'], margin=m - 0.01, gap=5)
     return out
 
 
 def metal_parts():
-    return [cap_flat(), tray_flat(), grate_flat(), shelf_flat(), foot_plate(), gusset(), vise_plate()]
+    return [cap_flat(), tray_flat(), grate_flat(), grate_mid_flat(), shelf_flat(), foot_plate(),
+            gusset(), vise_plate()]
 
 
 def ply_parts():
-    return [panel(), batten(), topboard()] + acc_parts()
+    return [panel(), batten()] + topboards() + acc_parts()
 
 
 def write_spec_csv(path, rows_header, rows):

@@ -5,7 +5,7 @@ from matplotlib.patches import Rectangle, Polygon as MplPoly, Circle, FancyArrow
 from geom import *
 from draw import *
 
-TOTAL = 10
+TOTAL = 11
 HATCH = '////'
 
 
@@ -66,16 +66,21 @@ def front_top_A(v, x0=0, lw=LW_THICK):
 
 
 def front_top_B(v, x0=0, lw=LW_THICK):
-    v.rect(x0, FRAME_TOP, MOD_W, CAP_H, lw=lw)
-    v.hidden(x0 + CAP_T, FRAME_TOP + PLY_T, x0 + MOD_W - CAP_T, FRAME_TOP + PLY_T)
+    xc = x0 + PL_X0 - PL_GAP
+    v.rect(x0, FRAME_TOP, xc - x0, CAP_H, lw=lw)
+    v.rect(x0 + PL_X0, FRAME_TOP, PL_W, PL_T, lw=lw, fill='#8a9097')
+
+
+def vise_x(x0=0):
+    return x0 + PL_X0 + 140
 
 
 def vise(v, x, z, lw=LW_THIN):
     """Тиски (покупные), условно. x — ось, z — верх столешницы."""
-    v.rect(x - 90, z, 180, 30, lw=lw)
-    v.rect(x - 70, z + 30, 140, 80, lw=lw)
-    v.rect(x - 80, z + 110, 160, 25, lw=lw)
-    v.line(x + 80, z + 60, x + 200, z + 60, lw=lw)
+    v.rect(x - 90, z, 180, 30, lw=lw, fill='white', z=4)
+    v.rect(x - 70, z + 30, 140, 80, lw=lw, fill='white', z=4)
+    v.rect(x - 80, z + 110, 160, 25, lw=lw, fill='white', z=4)
+    v.line(x + 80, z + 60, x + 200, z + 60, lw=lw, z=4)
 
 
 # ============================================================================
@@ -102,11 +107,10 @@ def sheet1():
     v.text(bx + 1.5 * MOD_W, by + 350, 'Б', size=8, weight='bold')
     v.circle(bx + TR_X0 + TR_T + DR_OFF, by + MOD_D - (TR_X0 + TR_T + DR_OFF), 45, lw=0.6)
     # панели
-    for k in range(2):
+    for k in range(PN_N):
         v.rect(bx + k * PN_W, Lg - 2 * PLY_T, PN_W, 2 * PLY_T, fill='#c8a26a', lw=LW_THIN)
-    v.rect(Wg - 2 * PLY_T, Lg - 750 - PN_W, 2 * PLY_T, PN_W, fill='#c8a26a', lw=LW_THIN)
     v.leader(bx + 300, Lg - 18, -6, 7, 'П1 (×2)', size=6)
-    v.leader(Wg - 18, Lg - 750 - PN_W / 2, 6, 6, 'П1', size=6)
+    v.rect(bx + MOD_W + PL_X0, by, PL_W, PL_D, lw=LW_THIN, fill='#8a9097')
     # мотоцикл, стеллаж
     v.polyline([(1250, 1700), (1750, 1700), (1750, 3900), (1250, 3900)], lw=LW_THIN, ls='--')
     v.text(1500, 2800, 'мото', size=6, rot=90)
@@ -134,15 +138,15 @@ def sheet1():
             v.polyline([(x0 + 60, LOW_Z1 + SH_T), (x0 + 330, LOW_Z1 + SH_T),
                         (x0 + 330, LOW_Z1 + 330), (x0 + 60, LOW_Z1 + 330)], lw=LW_THIN,
                        ls=(0, (3, 2)))
-            v.text(x0 + 195, LOW_Z1 + 165, 'канистра\n10 л', size=5)
+            v.text(x0 + 195, LOW_Z1 + 165, 'канистра\n10–20 л', size=5)
         else:
             front_top_B(v, x0)
-            vise(v, x0 + 1210, TOP_Z)
-            v.polyline([(x0 + 300, 0), (x0 + 1000, 0), (x0 + 1000, 790), (x0 + 300, 790)],
+            vise(v, vise_x(x0), TOP_Z)
+            v.polyline([(x0 + 200, 0), (x0 + 900, 0), (x0 + 900, 860), (x0 + 200, 860)],
                        lw=LW_THIN, ls=(0, (3, 2)))
-            v.text(x0 + 650, 420, 'тумба на колёсах\n(покупная, h≤800)', size=5)
+            v.text(x0 + 550, 450, 'тумба на колёсах\n(покупная, h≤870)', size=5)
     # панели
-    for k in range(2):
+    for k in range(PN_N):
         px = bx + k * PN_W
         v.rect(px, PN_Z0, PN_W, PN_H, lw=LW_THICK, fill='#f3e3c7')
         xs, ys = [], []
@@ -158,15 +162,15 @@ def sheet1():
         v.rect(x, z, L, 90, lw=LW_THIN, fill='#e4c896')
         v.rect(x, z + 72, L, 18, lw=LW_THIN, fill='#d9b77d')
         v.text(x + L / 2, z + 36, kind, size=5)
-    acc_front(bx + 250, 1700, 400, 'А2 ключница')
-    acc_front(bx + 850, 1450, 300, 'А1 отвёртки')
-    acc_front(bx + MOD_W + 250, 1300, 400, 'А3 полка')
-    acc_front(bx + MOD_W + 800, 1750, 400, 'А3 полка')
+    acc_front(bx + 250, 1750, 400, 'А2 ключница')
+    acc_front(bx + 850, 1500, 300, 'А1 отвёртки')
+    acc_front(bx + MOD_W + 250, 1350, 400, 'А3 полка')
+    acc_front(bx + MOD_W + 800, 1800, 400, 'А3 полка')
     v.dimx(0, bx, -170, 0, 0, text='100')
     v.dimx(bx, bx + MOD_W, -170, 0, 0)
     v.dimx(bx + MOD_W, bx + 2 * MOD_W, -170, 0, 0)
     v.dimx(bx + 2 * MOD_W, Wg, -170, 0, 0, text='100')
-    v.dimy(0, TOP_Z, -230, bx, bx, text='900')
+    v.dimy(0, TOP_Z, -230, bx, bx, text=fmt(round(TOP_Z, -1)))
     v.dimy(0, PN_Z0, -420, bx, bx)
     v.dimy(PN_Z0, PN_Z0 + PN_H, -230, bx, bx)
     v.text(bx + MOD_W / 2, -330, 'Модуль А — разборка вилок/моторов, слив', size=5.5)
@@ -182,17 +186,20 @@ def sheet1():
     label(ax, 27, 137, 'ИЗОМЕТРИЯ (условно)')
     notes(ax, 236, 127, [
         'ОСНОВНЫЕ РЕШЕНИЯ',
-        '1. Верстак 2800×700, высота 900, из двух модулей по 1400 (А + Б),',
+        '1. Верстак 2800×700, высота 950 (под рост 187), два модуля по 1400,',
         '   стягиваются болтами М8 через ноги. Зазор до боковых стен по 100.',
         '2. Модуль А: поддон из нерж. 1,5 мм, дно с уклоном ~1% к сливу',
         '   (зад-лево). Сверху 4 съёмные решётки 3 мм вровень со столешницей.',
         '   Слив: полумуфта G1/2" → кран → шланг → канистра на полке.',
         '   Решётки снял — получил мойку-ванну ~60 л для деталей.',
-        '3. Модуль Б: фанера 2×18 мм + крышка из нерж. 1,5 с юбкой.',
-        '   Под столешницей место под инструментальную тумбу (h ≤ 800).',
+        '3. Модуль Б: фанера 18 мм на 3 поперечинах + крышка из нерж. 1,5.',
+        '   В правом переднем углу — плита 20 мм вровень со столешницей,',
+        '   лежит прямо на каркасе: тиски + площадка для правки/рихтовки.',
+        '   Под столешницей место под инструментальную тумбу (h ≤ 870).',
         '4. Каркасы: профиль 40×40×2 и 40×20×2, сварка MAG, покраска.',
-        '5. Стена: 3 панели из фанеры 18 мм (2 над верстаком + 1 сбоку),',
-        '   отверстия ø8 сеткой 50 — под шканты/держатели. Панели на рейках.',
+        '5. Стена: 2 панели из фанеры 18 мм над верстаком, отверстия ø8',
+        '   сеткой 50 — под шканты/держатели. Панели на вертикальных рейках.',
+        '   Вся фанера — 2 листа 2440×1220.',
         '6. Перед заказом — замерить гараж! Если ширина < 2900, уменьшить',
         '   MOD_W в geom.py и пересобрать (build.py).',
     ], size=5.8, dy=3.35)
@@ -206,9 +213,7 @@ def side_section(v, mod):
     # стена + панель
     v.line(0, 0, 0, 2450, lw=1.6)
     v.polyline([(-60, 0), (0, 0), (0, 2450), (-60, 2450)], lw=0, fill='0.85', hatch=HATCH)
-    v.rect(0, PN_Z0 + 40, PLY_T, BT_W, lw=LW_THIN, fill='#d9b77d')
-    v.rect(0, PN_Z0 + 590, PLY_T, BT_W, lw=LW_THIN, fill='#d9b77d')
-    v.rect(0, PN_Z0 + 1090, PLY_T, BT_W, lw=LW_THIN, fill='#d9b77d')
+    v.rect(0, PN_Z0 + BT_Y0, PLY_T, BT_L, lw=LW_THIN, fill='#d9b77d')
     v.rect(PLY_T, PN_Z0, PLY_T, PN_H, lw=LW_THICK, fill='#f3e3c7')
     v.line(-80, 0, D + 80, 0, lw=LW_THICK)
     # ноги (за плоскостью разреза)
@@ -251,12 +256,11 @@ def side_section(v, mod):
         v.text(D / 2, LOW_Z1 + 470, 'уклон\n→ слив', size=5)
     else:
         v.rect(0, FRAME_TOP, D, PLY_T, lw=LW_THIN, fill='#e9cf9f', hatch='xxx')
-        v.rect(0, FRAME_TOP + PLY_T, D, PLY_T, lw=LW_THIN, fill='#e9cf9f', hatch='xxx')
         v.polyline([(0, FRAME_TOP), (0, TOP_Z), (D, TOP_Z), (D, FRAME_TOP)], closed=False,
                    lw=1.2, color='#1f5fa8')
-        v.polyline([(120, 0), (580, 0), (580, 790), (120, 790)], lw=LW_THIN, ls=(0, (3, 2)))
+        v.polyline([(120, 0), (580, 0), (580, 860), (120, 860)], lw=LW_THIN, ls=(0, (3, 2)))
         v.text(350, 420, 'тумба', size=5)
-    v.dimy(0, TOP_Z, D + 120, D, D, left=False, text='900')
+    v.dimy(0, TOP_Z, D + 120, D, D, left=False, text=fmt(round(TOP_Z, -1)))
     v.dimx(0, D, -170, 0, 0)
 
 
@@ -277,12 +281,9 @@ def iso_scene(ax, x, y, w, h):
         dots = [(px + 50 + 50 * i, yb - 2 * PLY_T, PN_Z0 + 50 + 50 * j)
                 for i in range(0, 27) for j in range(0, 23)]
         I.box(px, yb - 2 * PLY_T, PN_Z0, PN_W, PLY_T, PN_H, '#e3c48f', prio=1, dots={0: dots})
-    y3 = yb - 750 - PN_W
-    dots = [(Wg - 2 * PLY_T, y3 + 50 + 50 * i, PN_Z0 + 50 + 50 * j) for i in range(27) for j in range(23)]
-    I.box(Wg - 2 * PLY_T, y3, PN_Z0, PLY_T, PN_W, PN_H, '#e3c48f', prio=1, dots={3: dots})
     # держатели
-    for (ax_, az, L) in ((BENCH_X0 + 250, 1700, 400), (BENCH_X0 + 850, 1450, 300),
-                          (BENCH_X0 + MOD_W + 250, 1300, 400), (BENCH_X0 + MOD_W + 800, 1750, 400)):
+    for (ax_, az, L) in ((BENCH_X0 + 250, 1750, 400), (BENCH_X0 + 850, 1500, 300),
+                          (BENCH_X0 + MOD_W + 250, 1350, 400), (BENCH_X0 + MOD_W + 800, 1800, 400)):
         I.box(ax_, yb - 2 * PLY_T - 18, az, L, 18, 90, '#d2a86a', prio=1.5)
         I.box(ax_, yb - 2 * PLY_T - 90, az + 72, L, 72, 18, '#d2a86a', prio=1.5)
     # верстак
@@ -316,9 +317,13 @@ def iso_scene(ax, x, y, w, h):
                 I.box(gx, Y(GR_X0), FRAME_TOP + TR_T, GR_W, GR_D, GR_H, '#d4dae0',
                       dots={4: dots})
         else:
-            I.box(x0, Y(0), FRAME_TOP, MOD_W, MOD_D, CAP_H, '#d9dee3')
-            I.box(x0 + 300, Y(40), 0, 700, 470, 790, '#1d5e3a')
-            vx = x0 + 1120
+            xc = PL_X0 - PL_GAP
+            I.box(x0, Y(0), FRAME_TOP, xc, MOD_D, CAP_H, '#d9dee3')
+            I.box(x0 + xc, Y(PL_D + PL_GAP), FRAME_TOP, MOD_W - xc, MOD_D - PL_D - PL_GAP, CAP_H,
+                  '#d9dee3')
+            I.box(x0 + PL_X0, Y(0), FRAME_TOP, PL_W, PL_D, PL_T, '#7d838a')
+            I.box(x0 + 200, Y(40), 0, 700, 470, 860, '#1d5e3a')
+            vx = vise_x(x0) - 90
             I.box(vx, Y(10), TOP_Z, 180, 160, 30, '#2f3338')
             I.box(vx + 20, Y(-30), TOP_Z + 30, 140, 200, 80, '#2f3338')
             I.box(vx + 10, Y(-40), TOP_Z + 110, 160, 30, 25, '#2f3338')
@@ -357,7 +362,7 @@ def sheet_frame(mod):
     vf.leader(20, FOOT_H + 2, -10, -6, 'Л5', ball=True)
     if mod == 'B':
         vf.leader(T + 30, FRAME_TOP - T - 30, 10, -12, 'Л6', ball=True)
-        vf.text(700, 420, 'ниша под тумбу:\nширина 1320 (1120 вверху у косынок),\nвысота до 820 от пола', size=6, color='0.3')
+        vf.text(700, 420, 'ниша под тумбу:\nширина 1320 (1120 вверху у косынок),\nвысота до %d от пола' % (FRAME_TOP - TUBE - 10), size=6, color='0.3')
     # отв. стяжки
     vf.leader(W - 20, FOOT_H + PLATE_T + LEG_HOLES[1], 14, 6, '2 отв. ø9 сквозь', size=6)
     vf.dimy(FOOT_H + PLATE_T, FOOT_H + PLATE_T + LEG_HOLES[0], W + 250, W, W, left=False,
@@ -404,23 +409,25 @@ def sheet_frame(mod):
     if mod == 'B':
         for xc in CROSS_XC:
             vt.rect(xc - T / 2, T, T, D - 2 * T)
-        vt.polyline([(1110, 45), (1310, 45), (1310, 245), (1110, 245)], lw=LW_THIN, ls='--')
-        vt.text(1210, 145, 'Л7\n(под фанерой)', size=5)
-        # отверстия крепления фанеры
-        pts = [(T + p, T / 2) for p in (200, 660, 1120)] + [(T + p, D - T / 2) for p in (200, 660, 1120)]
-        pts += [(xc, T + p) for xc in CROSS_XC for p in (150, 470)]
-        pts += [(T / 2, D / 2), (W - T / 2, D / 2)]
-        for px_, py_ in pts:
-            vt.circle(px_, py_, 6, lw=LW_THIN)
-            vt.line(px_ - 12, py_, px_ + 12, py_, lw=LW_HAIR); vt.line(px_, py_ - 12, px_, py_ + 12, lw=LW_HAIR)
-        vt.dimx(0, CROSS_XC[0], -60, 0, 0)
-        vt.dimx(0, CROSS_XC[1], -120, 0, 0)
+        vt.rect(T7_X0, T7_YC - T / 2, T7_L, T)
+        vt.polyline([(PL_X0, 0), (W, 0), (W, PL_D), (PL_X0, PL_D)], lw=LW_THIN, ls=(0, (5, 2)),
+                    color='#c0392b')
+        vt.text(PL_X0 + 230, PL_D - 70, 'плита Л7 (сверху)', size=5, color='#c0392b')
+        for bx_, by_ in PL_BOLTS:
+            X, Y = PL_X0 + bx_, by_
+            vt.circle(X, Y, 5.5, lw=LW_THIN, color='#c0392b')
+            vt.line(X - 12, Y, X + 12, Y, lw=LW_HAIR); vt.line(X, Y - 12, X, Y + 12, lw=LW_HAIR)
+        for k, xc in enumerate(CROSS_XC):
+            vt.dimx(0, xc, -60 - 60 * k, 0, 0)
+        vt.dimy(0, T7_YC, W + 60, W, W, left=False)
         vt.leader(CROSS_XC[0], D / 2 + 80, -10, 6, 'Т4', ball=True)
-        vt.leader(T + 1120, T / 2, 6, -14, '12 отв. ø5 (верх) / ø10 (низ)', size=5.5)
+        vt.leader(T7_X0 + 80, T7_YC, -4, 8, 'Т7', ball=True)
+        vt.leader(PL_X0 + PL_BOLTS[1][0], PL_BOLTS[1][1], 4, -16,
+                  '4 отв. ø11 в трубах — сверлить по плите Л7', size=5.5)
     vt.dimx(0, W, D + 60, D, D)
     vt.dimy(0, D, -60, 0, 0)
     vt.text(W / 2, D + 130, 'стена', size=5.5)
-    vt.text(W / 2 + 250 if mod == 'B' else W / 2, -60, 'перед', size=5.5)
+    vt.text(W / 2 + 350 if mod == 'B' else W / 2, -60, 'перед', size=5.5)
 
     # ---- деталь ноги и подпятника
     vl = View(ax, 335, 170, s)
@@ -439,19 +446,19 @@ def sheet_frame(mod):
     for tb in tubes():
         if mod == 'B' and tb.code == 'Т5':
             q = 1
-        elif mod == 'A' and tb.code == 'Т4':
+        elif mod == 'A' and tb.code in ('Т4', 'Т7'):
             continue
         elif tb.code == 'Т5':
             q = 2
-        elif tb.code == 'Т4':
-            q = 2
+        elif tb.code in ('Т4', 'Т7'):
+            q = tb.qty
         else:
             q = tb.qty // N_MOD
         rows.append((tb.code, tb.name, tb.profile, fmt(tb.L), q))
     rows.append(('Л5', 'Подпятник 40×40×4 + гайка М12', 'лист 4', '—', 4))
     if mod == 'B':
         rows.append(('Л6', 'Косынка', 'лист 4', '—', 2))
-        rows.append(('Л7', 'Пластина под тиски (не варить)', 'лист 6', '—', 1))
+        rows.append(('Л7', 'Плита 20 мм (кладётся сверху, болты)', 'лист 6', '—', 1))
     yb = table(ax, 233, 158, ['Поз.', 'Наименование', 'Профиль', 'L, мм', 'Кол.'], rows,
                [11, 72, 22, 16, 11])
     lines = [
@@ -469,9 +476,11 @@ def sheet_frame(mod):
         lines += ['7. Поддон Л2 лежит полкой на верхней раме, не приваривается.',
                   '8. Нижняя полка Л4 лежит на Т5/Т6, фиксируется ногами.']
     else:
-        lines += ['7. Т4 — вровень по верху с Т2. Л6 вварить в плоскости',
+        lines += ['7. Т4 и Т7 — вровень по верху с Т2. Л6 вварить в плоскости',
                   '   передних ног, по центру профиля (с двух сторон).',
-                  '8. Отв. ø5 сверху/ø10 снизу — под саморезы крепления фанеры.']
+                  '8. Верх Т2/Т3/Т4-3/Т7 под плитой Л7 — без наплывов (зачистить),',
+                  '   плита должна лечь без качки. Отв. ø11 сверлить по плите.',
+                  '9. Фанеру крепить сверху саморезами с крылышками 4,8×38.']
     notes(ax, 233, yb - 4, lines, size=5.6, dy=3.2)
     return fig
 
@@ -570,8 +579,8 @@ def sheet_tray():
     vw.text(ox + Bx / 2, oy + By * 0.55, 'Б1, Б3 — на себя 90°;  Б2 — от себя 90°', size=5.5, color='#c0392b')
 
     # ---- узел 1 (1:1): сечение края у фронта
-    z_lo = 835
-    u = View(ax, 38, 62 - z_lo, 1.0)
+    z_lo = FRAME_TOP - 28
+    u = View(ax, 48, 80 - z_lo, 1.0)
     label(ax, 28, 156, 'УЗЕЛ 1 — край у фронта 1:1', size=7)
     zr = FRAME_TOP - 40
     # перемычка Т2 (верхняя часть, обрыв снизу)
@@ -590,10 +599,10 @@ def sheet_tray():
     u.polyline([(GR_X0, gz), (GR_X0, TOP_Z), (62, TOP_Z), (62, TOP_Z - GR_T), (GR_X0 + GR_T, TOP_Z - GR_T),
                 (GR_X0 + GR_T, gz)], lw=LW_THIN, fill='#9fb4c8')
     u.leader(20, FRAME_TOP - 15, 8, -12, 'Т2', ball=True)
-    u.leader(X0 + 0.7, 845, 9, 0, 'Л2', ball=True)
+    u.leader(X0 + 0.7, FRAME_TOP - 18, 9, 0, 'Л2', ball=True)
     u.leader(45, TOP_Z - 1.5, 4, 8, 'Л3', ball=True)
     u.leader(1.7, FRAME_TOP + 8, -6, 8, 'упор', size=5.5, ha='right')
-    u.dimy(gz, TOP_Z, 68, 62, 62, left=False, text='36')
+    u.dimy(gz, TOP_Z, 68, 62, 62, left=False, text=fmt(GR_H))
     u.dimy(FRAME_TOP, FRAME_TOP + TR_TAB_H, -5, 1, 1, text='10')
     u.dimx(1, X0, z_lo - 6, FRAME_TOP, FRAME_TOP, text='42', above=False)
     u.dimx(40, X0, FRAME_TOP + 22, FRAME_TOP, FRAME_TOP, text='3')
@@ -637,128 +646,237 @@ def sheet_tray():
 
 
 # ============================================================================
-# ЛИСТ 5 — Решётка и крышка
+# ЛИСТ 5 — Решётки
 # ============================================================================
-def sheet_grate_cap():
-    fig, ax = new_sheet('Решётка Л3, крышка Л1', 5, TOTAL, '1:5, 1:10, 1:1',
-                        'Л3 — AISI 304 3 мм; Л1 — AISI 430 1,5 мм')
-    G = grate_flat()
+def sheet_grates():
+    fig, ax = new_sheet('Решётки Л3, Л8 (модуль А)', 5, TOTAL, '1:5, 1:20', 'AISI 304, 3 мм')
+    G, Gm = grate_flat(), grate_mid_flat()
     s = 0.2
-    # ---- вид сверху решётки
+    # ---- вид сверху (одинаковый у Л3 и Л8)
     v = View(ax, 40, 131, s)
-    label(ax, 30, 283, 'Л3 РЕШЁТКА — 4 шт. Вид сверху 1:5', size=7)
+    label(ax, 30, 283, 'Л3, Л8 — вид сверху 1:5', size=7)
     v.rect(0, 0, GR_W, GR_D)
     SB = G.SB
     for hh in G.holes:
         v.contour([(x + SB, y + SB, b) for x, y, b in hh], lw=LW_HAIR)
-    v.dimx(0, GR_W, GR_D + 40, GR_D, GR_D, text='347,5')
+    v.dimx(0, GR_W, GR_D + 40, GR_D, GR_D, text=fmt(GR_W))
     v.dimy(0, GR_D, -40, 0, 0)
     pf = G.perf
-    v.dimy(0, pf['hy'], GR_W + 30, GR_W, GR_W / 2, left=False, text='72')
+    v.dimy(0, pf['hy'], GR_W + 30, GR_W, GR_W / 2, left=False, text='%d' % pf['hy'])
     c0x, c0y = pf['cx0'], pf['cy0']
     v.dimx(0, c0x, -30, 0, c0y - 20, text=fmt(c0x))
     v.dimx(c0x, c0x + pf['px'], -60, c0y - 20, c0y - 20, text='18')
     v.dimy(c0y - 20, c0y + 20, GR_W + 30, None, None, text='40')
-    v.dimy(c0y, c0y + pf['py'], GR_W + 75, None, None, left=False, text='55')
-    v.text(GR_W / 2, -105, 'пазы 6×40, шаг 18×55, шахматный — %d шт.;  ручки 70×22 — 2 шт.' % pf['n'], size=5.5)
-    # ---- вид спереди
-    vf = View(ax, 40, 90, s)
-    label(ax, 40, 102, 'Вид спереди 1:5', size=6, weight='normal')
-    vf.rect(0, 0, GR_W, GR_H)
-    vf.hidden(GR_T, 0, GR_T, GR_H - GR_T); vf.hidden(GR_W - GR_T, 0, GR_W - GR_T, GR_H - GR_T)
-    vf.hidden(GR_T, GR_H - GR_T, GR_W - GR_T, GR_H - GR_T)
-    vf.dimy(0, GR_H, -40, 0, 0, text='36')
-    # ---- развёртка решётки
-    p = G.normalized()
-    vw = View(ax, 135, 112, s)
-    label(ax, 125, 283, 'Развёртка Л3 1:5', size=7)
-    vw.contour(p.outer)
-    for hh in p.holes:
-        vw.contour(hh, lw=LW_HAIR)
-    for x1, y1, x2, y2, lab in p.bends:
-        vw.line(x1, y1, x2, y2, lw=LW_HAIR, ls=(0, (8, 2, 2, 2)), color='#c0392b')
-    w, h = p.size()
-    vw.dimx(0, w, h + 25, h, h)
-    vw.dimy(0, h, -30, 0, 0)
-    E = (w - G.Bx) / 2
-    vw.dimx(E, E + G.Bx, -25, E, E, text=fmt(G.Bx))
-    vw.dimy(E, E + G.By, w + 25, w - E, w - E, left=False, text=fmt(G.By))
-    vw.text(w / 2, E / 2, 'юбка %s' % fmt(E), size=5)
-    vw.text(w / 2, h - E / 2, 'все гибы — от себя 90°', size=5, color='#c0392b')
+    # ---- виды спереди
+    for k, (p, ttl) in enumerate(((G, 'Л3 крайняя — вид спереди'), (Gm, 'Л8 средняя — вид спереди'))):
+        oy = 105 - 20 * k
+        f = View(ax, 40, oy, s)
+        label(ax, 40, oy + 3.5, ttl, size=5.8, weight='normal')
+        f.rect(0, -GR_H, GR_W, GR_H)
+        for side, deep in zip((0, 1), p.deep):
+            if deep:
+                x = 0 if side == 0 else GR_W - GR_T
+                f.rect(x, -GR_H - GR_DEEP, GR_T, GR_DEEP, lw=LW_THIN)
+        f.dimy(-GR_H, 0, -30, 0, 0, text=fmt(GR_H))
+        f.dimy(-GR_H - GR_DEEP, 0, GR_W + 30, GR_W, GR_W, left=False, text=fmt(GR_H + GR_DEEP))
+    # ---- развёртки
+    for k, (p, ttl) in enumerate(((G, 'Развёртка Л3 — 2 шт.'), (Gm, 'Развёртка Л8 — 2 шт.'))):
+        q = p.normalized()
+        ox = 140 + 103 * k
+        vw = View(ax, ox, 112, s)
+        label(ax, ox - 5, 283, ttl, size=7)
+        vw.contour(q.outer)
+        for hh in q.holes:
+            vw.contour(hh, lw=LW_HAIR)
+        for x1, y1, x2, y2, lab in q.bends:
+            vw.line(x1, y1, x2, y2, lw=LW_HAIR, ls=(0, (8, 2, 2, 2)), color='#c0392b')
+        w, h = q.size()
+        vw.dimx(0, w, h + 25, h, h)
+        vw.dimy(0, h, -30, 0, 0)
+        xl = p.Ed if p.deep[0] else p.E
+        vw.dimx(xl, xl + p.Bx, -25, xl, xl, text=fmt(p.Bx))
+        vw.dimy(p.E, p.E + p.By, w + 25, w - (p.Ed if p.deep[1] else p.E),
+                w - (p.Ed if p.deep[1] else p.E), left=False, text=fmt(p.By))
+        vw.text(w / 2, p.E / 2, 'борт %s' % fmt(p.E), size=5)
+        vw.text(w / 2, h - p.E / 2, 'гибы от себя 90°', size=5, color='#c0392b')
+    # ---- профиль глубокого борта
+    pr = View(ax, 140, 80, s)
+    label(ax, 135, 97, 'Профиль глубокого борта (Л3 — с одной стороны, Л8 — с двух) 1:5', size=6)
+    y1 = GR_DEEP_Y[0] - GR_X0
+    y2 = GR_DEEP_Y[1] - GR_X0
+    pr.polyline([(0, 0), (GR_D, 0), (GR_D, -GR_H), (y2, -GR_H), (y2 - GR_DEEP, -GR_H - GR_DEEP),
+                 (y1 + GR_DEEP, -GR_H - GR_DEEP), (y1, -GR_H), (0, -GR_H)])
+    pr.dimx(0, y1, 25, 0, 0, text=fmt(y1))
+    pr.dimx(y1, y1 + GR_DEEP, -GR_H - GR_DEEP - 25, -GR_H, -GR_H - GR_DEEP, text='45°×%d' % GR_DEEP,
+            above=False)
+    pr.dimy(-GR_H - GR_DEEP, 0, GR_D + 30, GR_D, y2, left=False, text=fmt(GR_H + GR_DEEP))
+    pr.dimy(-GR_H, 0, -30, 0, 0, text=fmt(GR_H))
     # ---- раскладка решёток на модуле
-    va = View(ax, 40, 26, 0.05)
-    label(ax, 30, 76, 'Раскладка решёток на модуле А 1:20', size=6.5)
+    va = View(ax, 40, 24, 0.05)
+    label(ax, 30, 67, 'Раскладка на модуле А 1:20', size=6.5)
     va.rect(0, 0, MOD_W, MOD_D, lw=LW_THIN)
+    names = ('Л3', 'Л8', 'Л8', 'Л3↻')
     for k in range(GR_N):
-        va.rect(GR_X0 + k * (GR_W + GR_GAP), GR_X0, GR_W, GR_D, fill='#e6ebf0', lw=LW_THIN)
-        va.text(GR_X0 + k * (GR_W + GR_GAP) + GR_W / 2, MOD_D / 2, '%d' % (k + 1), size=6)
+        gx = GR_X0 + k * (GR_W + GR_GAP)
+        va.rect(gx, GR_X0, GR_W, GR_D, fill='#e6ebf0', lw=LW_THIN)
+        va.text(gx + GR_W / 2, MOD_D / 2, names[k], size=6)
     va.dimx(0, MOD_W, -90, 0, 0)
-    va.text(MOD_W / 2, MOD_D + 90, 'зазоры 1 мм, решётки взаимозаменяемы', size=5)
-
-    # ---- крышка Л1
-    C = cap_flat()
-    pc = C.normalized()
-    vc = View(ax, 245, 192, 0.1)
-    label(ax, 235, 283, 'Л1 КРЫШКА — развёртка 1:10 — 1 шт.', size=7)
-    vc.contour(pc.outer)
-    for cx, cy, r in pc.circles:
-        vc.circle(cx, cy, max(r, 6), lw=LW_THIN)
-    for x1, y1, x2, y2, lab in pc.bends:
-        vc.line(x1, y1, x2, y2, lw=LW_HAIR, ls=(0, (8, 2, 2, 2)), color='#c0392b')
-    w, h = pc.size()
-    vc.dimx(0, w, h + 50, h, h)
-    vc.dimy(0, h, -50, 0, 0)
-    E = (w - C.Bx) / 2
-    vc.dimx(E, E + C.Bx, h * 0.35, None, None, text='%s (верх между гибами)' % fmt(C.Bx))
-    vc.dimy(E, E + C.By, w * 0.75, None, None, text=fmt(C.By))
-    vc.text(w / 2, h * 0.62, 'юбка 37,5 вниз (от себя 90°), Rвн 1,5', size=5.5, color='#c0392b')
-    vc.text(w / 2, -110, '10 отв. ø4,5 в юбке — саморезы в торец фанеры', size=5.5)
-    # узел 3: сечение края столешницы 1:1
-    z_lo = 848
-    u = View(ax, 255, 62 - z_lo, 1.0)
-    label(ax, 238, 123, 'УЗЕЛ 3 — край столешницы Б 1:1', size=7)
-    u.polyline([(0, z_lo), (0, FRAME_TOP), (40, FRAME_TOP), (40, z_lo), (38, z_lo), (38, FRAME_TOP - 2),
-                (2, FRAME_TOP - 2), (2, z_lo)], lw=LW_THIN, fill='0.6')
-    zz = [(-2 + 4.4 * k, z_lo + (1.2 if k % 2 else -1.2)) for k in range(11)]
-    u.polyline(zz, closed=False, lw=LW_HAIR)
-    u.rect(CAP_T + 0.5, FRAME_TOP, 68, PLY_T, lw=LW_THIN, fill='#e9cf9f', hatch='xxx')
-    u.rect(CAP_T + 0.5, FRAME_TOP + PLY_T, 68, PLY_T, lw=LW_THIN, fill='#e9cf9f', hatch='xxx')
-    u.polyline([(0, FRAME_TOP), (0, TOP_Z), (72, TOP_Z), (72, TOP_Z - CAP_T), (CAP_T, TOP_Z - CAP_T),
-                (CAP_T, FRAME_TOP)], lw=LW_THIN, fill='#1f5fa8')
-    u.dimy(FRAME_TOP, TOP_Z, -5, 0, 0, text='37,5')
-    u.dimy(FRAME_TOP, FRAME_TOP + PLY_T, 76, 70, 70, left=False, text='18')
-    u.dimy(FRAME_TOP + PLY_T, FRAME_TOP + 2 * PLY_T, 76, 70, 70, left=False, text='18')
-    u.leader(0.7, TOP_Z - 11, -9, 4, 'саморез 4,2×16', size=5.5, ha='right')
-    u.leader(20, FRAME_TOP - 8, 10, -4, 'Т2', ball=True)
-    u.leader(55, TOP_Z - 0.7, 3, 7, 'Л1', ball=True)
-    u.leader(50, FRAME_TOP + 9, 10, -14, 'Щ1 — фанера 2×18 на клею', size=5.5)
-
-    notes(ax, 335, 172, [
+    notes(ax, 135, 58, [
         'ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ',
-        'Л3: гибы бортов от себя 90°,',
-        '  Rвн=3, K=0,42. Углы открытые.',
-        '  Заусенцы на пазах снять.',
-        '  Решётки ложатся бортами на',
-        '  полку поддона между упорами;',
-        '  верх вровень со столешн. Б.',
-        'Л1: гибы юбки от себя 90°,',
-        '  Rвн=1,5, K=0,42. Перед./задн.',
-        '  юбка во всю длину, боковые —',
-        '  внутрь; углы прихватить TIG',
-        '  и зашлифовать. Плёнку снять',
-        '  после монтажа. Крепление:',
-        '  МС-полимер по всей плоскости',
-        '  + 10 саморезов через юбку.',
+        '1. Резка — лазер по DXF (слой CUT); BEND — линии гиба.',
+        '   Гибы бортов от себя 90°, Rвн = 3, K = 0,42.',
+        '2. Л3 крайняя — 2 шт.: глубокий борт только с внутренней',
+        '   стороны. Правая крайняя = та же деталь, повёрнутая на 180°.',
+        '3. Л8 средняя — 2 шт.: глубокие борта с обеих сторон.',
+        '4. Наружные борта 18 мм лежат на полке поддона между',
+        '   упорами — верх решёток вровень со столешницей Б (950).',
+        '   Глубокие борта (48) уходят внутрь поддона: дают жёсткость',
+        '   (40 кг в центре — прогиб < 0,1 мм) и фиксируют решётки.',
+        '5. Перфорация: пазы 6×40, шаг 18×55 шахматный — %d шт.;' % G.perf['n'],
+        '   ручки 70×22 — 2 шт. Заусенцы снять, углы открытые.',
     ], size=5.6, dy=3.25)
     return fig
 
 
 # ============================================================================
-# ЛИСТ 6 — Полка и мелкие детали
+# ЛИСТ 6 — Столешница Б: крышка, фанера, плита
+# ============================================================================
+def sheet_topB():
+    fig, ax = new_sheet('Столешница Б: Л1, Щ1/Щ2, плита Л7', 6, TOTAL, '1:10, 1:5, 1:1',
+                        'AISI 430 1,5; Ст45 20; фанера 18')
+    C = cap_flat()
+    pc = C.normalized()
+    vc = View(ax, 42, 190, 0.1)
+    label(ax, 30, 283, 'Л1 КРЫШКА — развёртка 1:10 — 1 шт.', size=7)
+    vc.contour(pc.outer)
+    for cx, cy, r in pc.circles:
+        vc.circle(cx, cy, 6, lw=LW_THIN)
+    for x1, y1, x2, y2, lab in pc.bends:
+        vc.line(x1, y1, x2, y2, lw=LW_HAIR, ls=(0, (8, 2, 2, 2)), color='#c0392b')
+    w, h = pc.size()
+    E = C.E
+    vc.dimx(0, w, h + 50, h, h)
+    vc.dimy(0, h, -50, 0, 0)
+    vc.dimx(E, E + C.Bx, h * 0.6, None, None, text='%s (верх между гибами)' % fmt(C.Bx))
+    vc.dimy(E, E + C.By, w * 0.3, None, None, text=fmt(C.By))
+    ux, vy = E + C.uc, E + C.vc
+    vc.dimx(0, ux, -40, 0, 0, text=fmt(ux))
+    vc.dimy(0, vy, w + 40, w, ux, left=False, text=fmt(vy))
+    vc.text(ux + (w - ux) / 2, vy / 2, 'вырез\nпод Л7', size=5.5)
+    vc.text(w * 0.45, h * 0.3, 'юбка %s вниз (от себя 90°), Rвн 1,5;\n9 отв. ø4,5 в юбке' % fmt(CAP_H),
+            size=5.5, color='#c0392b')
+
+    # ---- сборка столешницы Б, вид сверху
+    vt = View(ax, 42, 92, 0.1)
+    label(ax, 30, 179, 'СБОРКА СТОЛЕШНИЦЫ Б — вид сверху 1:10 (крышка условно снята)', size=7)
+    vt.rect(0, 0, MOD_W, MOD_D, lw=LW_THIN)
+    a, b = topboards()
+    for p_ in (a, b):
+        q = p_.moved(*p_.pos)
+        vt.contour(q.outer, lw=LW_THICK, fill='#f3e3c7')
+        x0, y0, x1, y1 = q.bbox()
+        vt.text((x0 + x1) / 2 - (100 if p_.code == 'Щ2' else 0), y1 - 120, p_.code, size=7,
+                weight='bold')
+    vt.rect(PL_X0, 0, PL_W, PL_D, lw=LW_THICK, fill='#9aa0a7')
+    vt.text(PL_X0 + PL_W / 2, PL_D / 2, 'Л7', size=7, weight='bold')
+    for xc in CROSS_XC:
+        vt.hidden(xc - TUBE / 2, TUBE, xc - TUBE / 2, MOD_D - TUBE)
+        vt.hidden(xc + TUBE / 2, TUBE, xc + TUBE / 2, MOD_D - TUBE)
+    vt.hidden(T7_X0, T7_YC - TUBE / 2, T7_X0 + T7_L, T7_YC - TUBE / 2)
+    vt.hidden(T7_X0, T7_YC + TUBE / 2, T7_X0 + T7_L, T7_YC + TUBE / 2)
+    vt.dimx(0, SEAM_X, MOD_D + 50, MOD_D, MOD_D, text='%d (стык)' % SEAM_X)
+    vt.dimx(0, PL_X0, MOD_D + 110, MOD_D, PL_D)
+    vt.dimx(PL_X0, MOD_W, -50, 0, 0)
+    vt.dimy(0, PL_D, MOD_W + 50, MOD_W, MOD_W, left=False)
+    vt.dimy(0, MOD_D, -50, 0, 0)
+    vt.text(MOD_W / 2, -110, 'перед', size=5.5)
+    vt.text(300, 200, 'поперечины Т4 и Т7 — пунктиром', size=5, color='0.35')
+
+    # ---- плита Л7
+    P = vise_plate()
+    vp = View(ax, 222, 205, 0.2)
+    label(ax, 215, 283, 'Л7 ПЛИТА 20 мм — 1 шт. 1:5', size=7)
+    vp.contour(P.outer)
+    for cx, cy, r in P.circles:
+        vp.circle(cx, cy, r, lw=LW_THIN)
+        vp.circle(cx, cy, 10.5, lw=LW_HAIR)
+    vp.polyline([(40, -15), (240, -15), (240, 160), (40, 160)], lw=LW_THIN, ls=(0, (4, 2)),
+                color='#1f5fa8')
+    vp.text(140, 90, 'тиски\n(пример,\nотв. М12\nпо месту)', size=5, color='#1f5fa8')
+    vp.polyline([(265, 10), (440, 10), (440, 290), (265, 290)], lw=0, fill='#e8e8e8', hatch='...')
+    vp.text(352, 160, 'зона\nправки', size=6, bg=True)
+    vp.dimx(0, PL_W, PL_D + 25, PL_D, PL_D)
+    vp.dimy(0, PL_D, -25, 0, 0)
+    xs = sorted(set(x for x, y in PL_BOLTS))
+    for k, x in enumerate(xs):
+        vp.dimx(0, x, -20 - 25 * k, 0, 20 if x < 400 else 120)
+    for k, y in enumerate(sorted(set(y for x, y in PL_BOLTS))):
+        vp.dimy(0, y, PL_W + 25 + 28 * k, PL_W, 430 if y > 20 else 380, left=False)
+    vp.text(PL_W / 2, PL_D + 60, '4 отв. ø11, зенковка 90°×ø21 (потай М10)', size=5.5)
+
+    # ---- узел 3: край столешницы
+    z_lo = FRAME_TOP - 14
+    u = View(ax, 222, 112 - z_lo, 1.0)
+    label(ax, 215, 172, 'УЗЕЛ 3 — край столешницы Б 1:1', size=7)
+    u.polyline([(0, z_lo), (0, FRAME_TOP), (40, FRAME_TOP), (40, z_lo), (38, z_lo), (38, FRAME_TOP - 2),
+                (2, FRAME_TOP - 2), (2, z_lo)], lw=LW_THIN, fill='0.6')
+    u.rect(CAP_T + 0.5, FRAME_TOP, 66, PLY_T, lw=LW_THIN, fill='#e9cf9f', hatch='xxx')
+    u.polyline([(0, FRAME_TOP), (0, TOP_Z), (70, TOP_Z), (70, TOP_Z - CAP_T), (CAP_T, TOP_Z - CAP_T),
+                (CAP_T, FRAME_TOP)], lw=LW_THIN, fill='#1f5fa8')
+    u.polyline([(44, FRAME_TOP + PLY_T), (46, FRAME_TOP + PLY_T - 3.5), (46, FRAME_TOP - 2),
+                (48, FRAME_TOP + PLY_T - 3.5), (50, FRAME_TOP + PLY_T)], lw=LW_HAIR, fill='0.4')
+    u.dimy(FRAME_TOP, TOP_Z, -5, 0, 0, text=fmt(CAP_H))
+    u.dimy(FRAME_TOP, FRAME_TOP + PLY_T, 75, 68, 68, left=False, text='18')
+    u.leader(0.7, FRAME_TOP + CAP_T + PLY_T / 2, -8, -7, 'саморез 4,2×16', size=5.5, ha='right')
+    u.leader(47, FRAME_TOP + 6, 14, -14, 'саморез с крылышками 4,8×38', size=5.5)
+    u.leader(25, TOP_Z - 0.7, 3, 6, 'Л1', ball=True)
+    u.leader(20, FRAME_TOP - 8, -2, -9, 'Т2', ball=True)
+    # ---- узел 5: плита на каркасе
+    z5 = FRAME_TOP - 52
+    w5 = View(ax, 335, 163 - (FRAME_TOP + PL_T), 1.0)
+    label(ax, 318, 172, 'УЗЕЛ 5 — плита Л7 на Т2 1:1', size=7)
+    w5.polyline([(0, FRAME_TOP - TUBE), (0, FRAME_TOP), (40, FRAME_TOP), (40, FRAME_TOP - TUBE),
+                 (38, FRAME_TOP - TUBE), (38, FRAME_TOP - 2), (2, FRAME_TOP - 2), (2, FRAME_TOP - TUBE)],
+                lw=LW_THIN, fill='0.6')
+    w5.line(2, FRAME_TOP - TUBE + 2, 38, FRAME_TOP - TUBE + 2, lw=LW_THIN)
+    w5.rect(0, FRAME_TOP - TUBE, 40, 2, lw=LW_THIN, fill='0.6')
+    w5.polyline([(0, FRAME_TOP), (60, FRAME_TOP), (60, FRAME_TOP + PL_T), (0, FRAME_TOP + PL_T)],
+                lw=LW_THIN, fill='#9aa0a7')
+    by = 20
+    zt5 = FRAME_TOP + PL_T
+    w5.polyline([(by - 10.5, zt5), (by + 10.5, zt5), (by + 5, zt5 - 5.5), (by + 5, FRAME_TOP - TUBE - 18),
+                 (by - 5, FRAME_TOP - TUBE - 18), (by - 5, zt5 - 5.5)], lw=LW_THIN, fill='#5d6168')
+    w5.rect(by - 10, FRAME_TOP - TUBE - 2.5, 20, 2.5, lw=LW_THIN, fill='0.8')
+    w5.rect(by - 8.5, FRAME_TOP - TUBE - 11, 17, 8.5, lw=LW_THIN, fill='0.8')
+    w5.dimy(FRAME_TOP, zt5, 66, 60, 60, left=False, text='20')
+    w5.dimy(FRAME_TOP - TUBE, FRAME_TOP, -6, 0, 0, text='40')
+    w5.leader(45, zt5 - 4, 6, 8, 'Л7', ball=True)
+    w5.leader(38, FRAME_TOP - 25, 14, -4, 'Т2', ball=True)
+    w5.leader(by + 5, FRAME_TOP - 15, 24, 4, 'М10×80 DIN 7991', size=5.5)
+    w5.leader(by + 8, FRAME_TOP - TUBE - 7, 18, -2, 'шайба + гайка М10', size=5.5)
+
+    notes(ax, 215, 84, [
+        'ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ',
+        '1. Каркас Б → плита Л7 (4 болта М10 потай) → фанера Щ1, Щ2 (саморезы',
+        '   с крылышками 4,8×38 через фанеру в трубы, головки утопить) →',
+        '   крышка Л1 на МС-полимер + 9 саморезов 4,2×16 через юбку.',
+        '2. Стык Щ1/Щ2 — на оси средней поперечины, по 20 мм опоры каждой.',
+        '3. Верх Л7 выше крышки на %.1f мм — специально (кромка крышки' % (FRAME_TOP + PL_T - TOP_Z),
+        '   не цепляется). Зазор плита—фанера/крышка 1 мм.',
+        '4. Л7: лазер/плазма; лучше Ст45 (твёрже под правку). Верх —',
+        '   прошлифовать. Отв. под тиски: сверлить ø10,2 и нарезать М12.',
+        '5. Л1: гибы от себя 90°, Rвн 1,5, K 0,42. Углы юбки — прихватить TIG',
+        '   и зашлифовать. Плёнку снять после монтажа.',
+    ], size=5.6, dy=3.25)
+    return fig
+
+
+# ============================================================================
+# ЛИСТ 7 — Полка и мелкие детали
 # ============================================================================
 def sheet_small():
-    fig, ax = new_sheet('Полка Л4, детали Л5–Л7', 6, TOTAL, '1:10, 1:1, 1:2, 1:5',
-                        'Ст 08пс 1,5; Ст3 4 и 6 мм')
+    fig, ax = new_sheet('Полка Л4, детали Л5, Л6', 7, TOTAL, '1:10, 1:1, 1:2',
+                        'Ст 08пс 1,5; Ст3 4 мм')
     S = shelf_flat()
     p = S.normalized()
     v = View(ax, 45, 175, 0.1)
@@ -801,40 +919,33 @@ def sheet_small():
     g.dimx(0, 100, -14, 0, 0); g.dimy(0, 100, -14, 0, 0)
     g.dimx(0, 12, 112, 100, 100, text='12')
     g.text(55, 55, '', size=5)
-    # Л7
-    t = View(ax, 230, 150, 0.2)
-    label(ax, 225, 200, 'Л7 ПЛАСТИНА ПОД ТИСКИ — 1 шт. 1:5 (6 мм)', size=7)
-    t.contour(vise_plate().outer)
-    t.dimx(0, 200, 225, 200, 200); t.dimy(0, 200, -25, 0, 0)
-    t.text(100, 100, 'R10\nотв. под тиски\nсверлить по месту\n(4 × ø13)', size=5.5)
-    notes(ax, 300, 195, [
-        'Л7 кладётся под фанеру столешницы Б',
-        '(вид сверху, лист 3) и стягивается',
-        'болтами тисков М12 насквозь:',
-        'тиски — крышка — фанера 36 — Л7.',
+    notes(ax, 233, 190, [
+        'Л4 — после гибки грунт + краска в цвет каркаса.',
+        'Ставится на нижние перемычки модуля А,',
+        'вырезы 40×40 охватывают ноги. Борт 20 держит',
+        'канистру и пролитое масло.',
         '',
-        'Л4 — после гибки грунт + краска',
-        'в цвет каркаса. Ставится на нижние',
-        'перемычки модуля А, вырезы',
-        'охватывают ноги.',
+        'Л5 — 8 шт. (по одной на каждую ногу), гайку',
+        'М12 приварить до приварки Л5 к ноге.',
+        'Л6 — 2 шт., только модуль Б (передние углы).',
     ], size=5.8, dy=3.3)
     notes(ax, 40, 120, [
         'ОБЩИЕ УКАЗАНИЯ ПО ЛИСТОВЫМ ДЕТАЛЯМ',
         '— Резка: лазер, по DXF (папка DXF_laser). Слой CUT — рез, слой BEND — линии',
         '  гиба (кернить/не резать). Масштаб DXF 1:1, мм.',
         '— Развёртки посчитаны при K = 0,42 и Rвн = t. Если у гибщика другой инструмент —',
-        '  пусть пересчитает по своим таблицам, внешние размеры деталей — на листах 4–6.',
+        '  пусть пересчитает по своим таблицам, внешние размеры деталей — на листах 4–7.',
         '— Острые кромки притупить. Нержавейку гнуть в плёнке.',
-        '— Количество — в спецификации (лист 7) и в имени файла DXF.',
+        '— Количество — в спецификации (лист 8) и в имени файла DXF.',
     ], size=5.8, dy=3.4)
     return fig
 
 
 # ============================================================================
-# ЛИСТ 7 — Спецификация
+# ЛИСТ 8 — Спецификация
 # ============================================================================
 def sheet_spec(hardware):
-    fig, ax = new_sheet('Спецификация, карта резки', 7, TOTAL, '—', '—')
+    fig, ax = new_sheet('Спецификация, карта резки', 8, TOTAL, '—', '—')
     label(ax, 25, 287, '1. ПРОФИЛЬНАЯ ТРУБА — нарезать (торцы 90°)', size=7.5)
     rows = [(t.code, t.name, t.profile, fmt(t.L), t.qty, t.mods, t.note) for t in tubes()]
     yb = table(ax, 25, 283, ['Поз.', 'Наименование', 'Профиль', 'L, мм', 'Кол.', 'Модуль', 'Обработка'],
@@ -874,18 +985,19 @@ def sheet_spec(hardware):
     yb = table(ax, 25, y - 4, ['Поз.', 'Наименование', 'Материал', 't', 'Кол.', 'Развёртка', 'Гибов',
                                'Файл'], rows, [10, 42, 34, 8, 9, 27, 11, 59], fs=5.4)
     notes(ax, 25, yb - 3, [
-        'Отдельно в цех: каркасы — листы 2, 3; поддон — 4; решётка/крышка — 5; полка и мелочь — 6.',
+        'В цех: каркасы — листы 2, 3; поддон — 4; решётки — 5; столешница Б и плита — 6; полка, мелочь — 7.',
     ], size=5.6)
     label(ax, 25, yb - 12, '4. ПОРЯДОК РАБОТ', size=7.5)
     notes(ax, 25, yb - 16, [
         '1. Замерить гараж (ширина у задней стены, высота, ровность пола). При необходимости — MOD_W в geom.py.',
-        '2. Лазер + гибка: отдать DXF_laser/*.dxf (кроме NEST_*) + листы 4–6. Проверить первую деталь по размерам.',
-        '3. Трубы: нарезать по карте резки, просверлить ноги Т1 (ø9) и верх. перемычки модуля Б (ø5/ø10).',
-        '4. Сварить 2 каркаса на ровной плите (листы 2, 3), приварить Л5 с гайками, Л6. Покрасить.',
-        '5. Поддон: TIG-сварка углов, вварить полумуфту, проверить водой. Пассивация.',
-        '6. ЧПУ фанеры: DXF_cnc_fanera/NEST_fanera_list1..4.dxf. Склеить Щ1 (2 слоя), обклеить крышкой Л1.',
-        '7. Установка: модули к стене, выставить опорами в уровень, стянуть болтами М8. Поддон, решётки, полка, слив.',
-        '8. Стена: рейки Р1 по уровню → панели П1 → держатели А1–А3 на шкантах.',
+        '2. Лазер + гибка: отдать DXF_laser/*.dxf (кроме NEST_*) + листы 4–7. Проверить первую деталь по размерам.',
+        '3. Трубы: нарезать по карте резки, просверлить ноги Т1 (ø9 на 250 и 650).',
+        '4. Сварить 2 каркаса на ровной плите (листы 2, 3), приварить Л5 с гайками, Л6. Зачистить верх под плиту.',
+        '5. Положить плиту Л7, просверлить через неё 4 отв. ø11 в Т2/Т3, болты М10. Покрасить каркасы.',
+        '6. Поддон: TIG-сварка углов, вварить полумуфту, проверить водой. Пассивация.',
+        '7. ЧПУ фанеры: DXF_cnc_fanera/NEST_fanera_list1..2.dxf. Щ1/Щ2 — на саморезы, сверху крышка Л1.',
+        '8. Установка: модули к стене, опорами в уровень, стянуть болтами М8. Поддон, решётки, полка, слив.',
+        '9. Стена: рейки Р1 вертикально по отвесу → панели П1 → держатели А1–А3 на шкантах.',
     ], size=5.6, dy=3.4)
     # покупное
     label(ax, 233, 287, '3. ПОКУПНЫЕ ИЗДЕЛИЯ И МЕТИЗЫ', size=7.5)
@@ -897,15 +1009,15 @@ def sheet_spec(hardware):
 # ЛИСТ 8 — Стеновые панели
 # ============================================================================
 def sheet_panels():
-    fig, ax = new_sheet('Стеновая панель П1, рейка Р1, держатели', 8, TOTAL, '1:10, 1:2, 1:5',
+    fig, ax = new_sheet('Стеновая панель П1, рейка Р1, держатели', 9, TOTAL, '1:10, 1:2, 1:5',
                         'Фанера берёзовая ФК 18 мм')
     P = panel()
     v = View(ax, 40, 148, 0.1)
-    label(ax, 35, 283, 'П1 ПАНЕЛЬ — 3 шт. 1:10 (вид спереди)', size=7)
+    label(ax, 35, 283, 'П1 ПАНЕЛЬ — %d шт. 1:10 (вид спереди)' % PN_N, size=7)
     v.rect(0, 0, PN_W, PN_H)
-    for yc in BT_YC:
-        v.polyline([(10, yc - BT_W / 2), (PN_W - 10, yc - BT_W / 2), (PN_W - 10, yc + BT_W / 2),
-                    (10, yc + BT_W / 2)], lw=LW_THIN, ls=(0, (4, 2)), color='#a05a00')
+    for xc in BT_XC:
+        v.polyline([(xc - BT_W / 2, BT_Y0), (xc + BT_W / 2, BT_Y0), (xc + BT_W / 2, BT_Y0 + BT_L),
+                    (xc - BT_W / 2, BT_Y0 + BT_L)], lw=LW_THIN, ls=(0, (4, 2)), color='#a05a00')
     for cx, cy, r in P.drills:
         if r == PN_HOLE / 2:
             v.circle(cx, cy, 4, lw=0.2)
@@ -917,22 +1029,22 @@ def sheet_panels():
     v.dimx(50, 100, -40, 50, 50, text='50')
     v.dimy(0, 50, PN_W + 40, PN_W, PN_W - 50, left=False, text='50')
     for k, x in enumerate(PN_MOUNT_X):
-        v.dimx(0, x, -100 - k * 55, 0, 75)
+        v.dimx(0, x, -100 - k * 60, 0, 75)
     for k, y in enumerate(PN_MOUNT_Y):
-        v.dimy(0, y, PN_W + 110 + k * 60, PN_W, PN_W - 75, left=False)
-    v.leader(PN_MOUNT_X[1], PN_MOUNT_Y[1], 12, 12, '12 отв. ø5 + зенковка (крепёж к рейкам)', size=5.5)
+        v.dimy(0, y, PN_W + 110 + k * 55, PN_W, PN_W - 75, left=False)
+    v.leader(PN_MOUNT_X[1], PN_MOUNT_Y[2], 12, 12, '12 отв. ø5 + зенковка (крепёж к рейкам)', size=5.5)
     v.leader(PN_W - 50, PN_H - 50, 8, 12, '%d отв. ø8 сетка 50×50' % (P.grid[0] * P.grid[1]), size=5.5)
-    v.text(PN_W / 2, BT_YC[1] + 55, 'рейки Р1 (сзади)', size=5, color='#a05a00')
+    v.text(BT_XC[1] + 60, PN_H / 2, 'рейка Р1 (сзади)', size=5, color='#a05a00', rot=90)
 
     vb = View(ax, 40, 88, 0.1)
-    label(ax, 35, 112, 'Р1 РЕЙКА-ОТСТУП — 9 шт. 1:10', size=7)
+    label(ax, 35, 112, 'Р1 РЕЙКА-ОТСТУП (ставится вертикально) — %d шт. 1:10' % (3 * PN_N), size=7)
     B = batten()
     vb.rect(0, 0, BT_L, BT_W)
     for cx, cy, r in B.drills:
         vb.circle(cx, cy, 6, lw=LW_THIN)
     vb.dimx(0, BT_L, -40, 0, 0)
     vb.dimy(0, BT_W, BT_L + 40, BT_L, BT_L, left=False, text='70')
-    for k, x in enumerate(BT_ANCHOR_X):
+    for k, x in enumerate(BT_ANCHOR):
         vb.dimx(0, x, -90 - k * 45, 0, BT_W / 2)
     vb.text(BT_L / 2, BT_W + 35, '3 отв. ø6 + зенковка — дюбель-гвоздь/анкер 6×60 в стену', size=5.5)
 
@@ -941,7 +1053,7 @@ def sheet_panels():
     label(ax, 215, 283, 'УЗЕЛ 4 — монтаж 1:2', size=7)
     m.polyline([(-30, -40), (0, -40), (0, 210), (-30, 210)], lw=0, fill='0.85', hatch=HATCH)
     m.line(0, -40, 0, 210, lw=LW_THICK)
-    m.rect(0, 0, PLY_T, BT_W, fill='#d9b77d', lw=LW_THIN)
+    m.rect(0, -40, PLY_T, 250, fill='#d9b77d', lw=LW_THIN)
     m.rect(PLY_T, -40, PLY_T, 250, fill='#f3e3c7', lw=LW_THICK)
     m.rect(-25, 30, 25 + 9, 8, lw=LW_HAIR, fill='0.5')
     m.rect(PLY_T, 55 + 2.5, 2 * PLY_T - PLY_T, 0, lw=LW_HAIR)
@@ -994,8 +1106,9 @@ def sheet_panels():
     acc_view(300, 140, 'А3 — ПОЛКА (масла, баллоны) 1:5', 400, 90, 'A3')
     notes(ax, 233, 118, [
         'МОНТАЖ И ИСПОЛЬЗОВАНИЕ',
-        '1. Рейки Р1 — по уровню на стену: оси на 75, 625, 1125 от низа панели',
-        '   (низ панели — 960 от пола). Каждая — 3 дюбеля 6×60.',
+        '1. Рейки Р1 — вертикально, по отвесу: оси на %s от левого края' % ', '.join(str(x) for x in BT_XC),
+        '   панели, низ рейки на %d выше низа панели (низ панели — %d от пола).' % (BT_Y0, PN_Z0),
+        '   Каждая рейка — 3 дюбеля 6×60.',
         '2. Панель П1 — 12 саморезов 4,5×35 в рейки. Зазор за панелью 18 мм.',
         '3. В сетку ø8 вставляются мебельные шканты 8×40 — как крючки (с наклоном',
         '   вверх) или как фиксаторы держателей. Держатели А1–А3: в задней',
@@ -1007,18 +1120,18 @@ def sheet_panels():
 
 
 # ============================================================================
-# ЛИСТ 9 — Раскрой фанеры
+# ЛИСТ 10 — Раскрой фанеры
 # ============================================================================
 def sheet_ply_nest(sheets):
-    fig, ax = new_sheet('Раскрой фанеры (ЧПУ-фрезер)', 9, TOTAL, '1:18',
-                        'Фанера берёзовая ФК 18 мм, 1525×1525')
-    s = 1 / 18
-    colors = {'П1': '#f3e3c7', 'Р1': '#e3c48f', 'Щ1': '#e9d7b4'}
+    fig, ax = new_sheet('Раскрой фанеры (ЧПУ-фрезер)', 10, TOTAL, '1:16',
+                        'Фанера берёзовая ФК 18 мм, %d×%d' % (PLY_SW, PLY_SH))
+    s = 1 / 16
+    colors = {'П1': '#f3e3c7', 'Р1': '#e3c48f', 'Щ1': '#e9d7b4', 'Щ2': '#e9d7b4'}
     for k, (name, L) in enumerate(sheets):
-        ox = 28 + k * 98
-        v = View(ax, ox, 175, s)
-        label(ax, ox, 175 + PLY_SHEET * s + 6, name, size=6.5)
-        v.rect(0, 0, PLY_SHEET, PLY_SHEET, lw=LW_THIN, fill='#fbfbfb')
+        ox = 30 + k * 190
+        v = View(ax, ox, 185, s)
+        label(ax, ox, 185 + PLY_SH * s + 6, name, size=6.5)
+        v.rect(0, 0, PLY_SW, PLY_SH, lw=LW_THIN, fill='#fbfbfb')
         for p in L:
             v.contour(p.outer, lw=LW_THIN, fill=colors.get(p.code, '#f0d9ae'))
             for hh in p.holes:
@@ -1033,31 +1146,35 @@ def sheet_ply_nest(sheets):
                     v.circle(cx, cy, max(r, 8), lw=LW_HAIR)
             x0, y0, x1, y1 = p.bbox()
             big = (x1 - x0) > 300 and (y1 - y0) > 300
-            lx = (x0 + x1) / 2 if p.code != 'Р1' else x0 + (x1 - x0) * 0.3
-            v.text(lx, (y0 + y1) / 2, p.code, size=7 if big else 4.2,
-                   rot=0 if (x1 - x0) >= (y1 - y0) or big else 90, weight='bold' if big else 'normal')
-        v.dimx(0, PLY_SHEET, -60, 0, 0)
+            vert = (y1 - y0) > (x1 - x0) and not big
+            lx, ly = (x0 + x1) / 2, (y0 + y1) / 2
+            if p.code == 'Р1':
+                ly = y0 + (y1 - y0) * 0.25
+            v.text(lx, ly, p.code, size=7 if big else 4.2, rot=90 if vert else 0,
+                   weight='bold' if big else 'normal', bg=p.code == 'Р1')
+        v.dimx(0, PLY_SW, -70, 0, 0)
+        v.dimy(0, PLY_SH, -70, 0, 0)
     rows = []
     for p in ply_parts_list():
         w, h = p.size()
         nd = len(p.drills)
         rows.append((p.code, p.name, p.qty, '%s×%s' % (fmt(w), fmt(h)), nd if nd else '—',
-                     'см. лист 8' if p.code[0] in 'ПРА' else 'лист 1'))
-    label(ax, 25, 160, 'ДЕТАЛИ ИЗ ФАНЕРЫ 18 мм', size=7.5)
-    table(ax, 25, 156, ['Поз.', 'Наименование', 'Кол.', 'Размер', 'Отв.', 'Чертёж'], rows,
+                     'лист 6' if p.code[0] == 'Щ' else 'лист 9'))
+    label(ax, 25, 170, 'ДЕТАЛИ ИЗ ФАНЕРЫ 18 мм', size=7.5)
+    table(ax, 25, 166, ['Поз.', 'Наименование', 'Кол.', 'Размер', 'Отв.', 'Чертёж'], rows,
           [13, 58, 10, 26, 12, 22], fs=5.4)
-    notes(ax, 233, 160, [
+    notes(ax, 233, 170, [
         'ДЛЯ ЦЕХА ЧПУ (файлы в папке DXF_cnc_fanera):',
-        '— NEST_fanera_list1..4.dxf — готовые раскладки на лист 1525×1525.',
+        '— NEST_fanera_list1..2.dxf — готовые раскладки на лист %d×%d.' % (PLY_SW, PLY_SH),
         '— Слои: CUT — контур, фреза ø6 снаружи; CUT_INSIDE — внутр.',
         '  контуры/пазы, фреза внутри; DRILL_D8 / D6 / D5 — сверлить',
         '  насквозь указанным диаметром; SHEET, TEXT — не обрабатывать.',
         '— Зазор между деталями 12 мм, отступ от края 10 мм.',
+        '  Панель 1400×1200 встаёт в высоту листа 1220 впритык (по 10 мм).',
         '— Лазер для фанеры 18 мм не подходит (обугливание) — только фрезер.',
-        '— 2 детали Щ1 склеить ПВА D3 + саморезы 4×30 снизу, затем',
-        '  обклеить крышкой Л1.',
-        '— Если фанера 2500×1250: панель 1400×1200 + 3 рейки на листе,',
-        '  остаток — держатели (пересобрать раскладку в outputs.py).',
+        '— Столешница Б из двух частей Щ1 + Щ2: стык на средней поперечине,',
+        '  под крышкой не виден. Так вся фанера — 2 листа вместо 3.',
+        '— Свободные места на листах — запас под дополнительные держатели.',
     ], size=5.7, dy=3.4)
     return fig
 
@@ -1068,13 +1185,13 @@ def ply_parts_list():
 
 
 # ============================================================================
-# ЛИСТ 10 — Раскрой металла
+# ЛИСТ 11 — Раскрой металла
 # ============================================================================
 def sheet_metal_nest(nest):
-    fig, ax = new_sheet('Раскрой листового металла (справочно)', 10, TOTAL, '1:25 / 1:5',
+    fig, ax = new_sheet('Раскрой листового металла (справочно)', 11, TOTAL, '1:25 / 1:5',
                         'см. таблицу')
     s = 1 / 25
-    pos = [(28, 225), (118, 225), (208, 225), (298, 225), (28, 150), (130, 150)]
+    pos = [(28, 225), (118, 225), (208, 225), (298, 225), (25, 150), (125, 128)]
     for k, sh in enumerate(nest):
         ox, oy = pos[k]
         sc = s if sh['w'] >= 1000 else 1 / 5
@@ -1096,9 +1213,10 @@ def sheet_metal_nest(nest):
     notes(ax, 233, 140, [
         'ПРИМЕЧАНИЯ',
         '— Раскладка справочная: цех обычно раскладывает сам по своим листам.',
-        '  Отдаёте файлы деталей из DXF_laser + таблицу кол-ва (лист 7).',
+        '  Отдаёте файлы деталей из DXF_laser + таблицу кол-ва (лист 8).',
         '— Готовые раскладки: DXF_laser/NEST_*.dxf (граница листа — слой SHEET).',
-        '— Л5/Л6/Л7 — из любого обрезка Ст3 4 и 6 мм.',
+        '— Л5/Л6 — из обрезка Ст3 4 мм. Л7 — плита 20 мм: лазер или плазма,',
+        '  можно купить готовую заготовку 450×300 и просверлить.',
         '— Нержавейку AISI 304 для поддона и решёток не заменять на чёрную',
         '  сталь — бензин/промывка/вода. Крышку Л1 можно из AISI 304 или',
         '  оцинковки 1,5 (тогда та же развёртка).',
